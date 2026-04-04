@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SergiuTok</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --pink: #FE2C55;
+            --dark: #000;
+            --text: #fff;
+        }
+        body {
+            background: var(--dark);
+            color: var(--text);
+            font-family: sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #feed {
+            height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none;
+        }
+        #feed::-webkit-scrollbar { display: none; }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            scroll-snap-align: start;
+            background: #000;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .info {
+            position: absolute;
+            left: 15px;
+            bottom: 40px;
+            z-index: 10;
+            text-shadow: 1px 1px 5px rgba(0,0,0,0.8);
+        }
+        .username { font-weight: bold; margin-bottom: 5px; font-size: 1.1rem; }
+        .caption { font-size: 0.9rem; opacity: 0.9; }
+
+        .loader {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: #000; z-index: 5;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: var(--pink);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div id="feed"></div>
+
+<script>
+const videoData = [
+    { src: 'https://github.com/markyz1337/m2/raw/refs/heads/main/v14044g50000d78dmqfog65jruu30ts0.MP4', user: '@cafe_vibes', cap: 'Ritualul de dimineață ☕️' },
+    { src: 'https://github.com/markyz1337/m2/raw/refs/heads/main/v1c044g50000d77oc67og65j82uipkc0.MP4', user: '@cafe_vibes', cap: 'Ritualul de dimineață ☕️' },
+    { src: 'https://github.com/markyz1337/m2/raw/refs/heads/main/v14044g50000d78dmqfog65jruu30ts0.MP4', user: '@cafe_vibes', cap: 'Ritualul de dimineață ☕️' }
+];
+
+// Folosim link-uri directe de rezervă dacă Pexels face figuri
+const backupVideos = [
+    'https://github.com/markyz1337/m2/raw/refs/heads/main/v14044g50000d78dmqfog65jruu30ts0.MP4',
+    'https://github.com/markyz1337/m2/raw/refs/heads/main/v1c044g50000d77oc67og65j82uipkc0.MP4',
+    'https://assets.mixkit.co/videos/preview/mixkit-waves-coming-to-the-beach-shore-at-night-4421-large.mp4'
+];
+
+const feed = document.getElementById('feed');
+
+videoData.forEach((v, i) => {
+    const container = document.createElement('div');
+    container.className = 'video-container';
+    container.innerHTML = `
+        <div class="loader"><div class="spinner"></div></div>
+        <video src="${backupVideos[i % backupVideos.length]}" loop playsinline muted></video>
+        <div class="info">
+            <div class="username">${v.user}</div>
+            <div class="caption">${v.cap}</div>
+        </div>
+    `;
+    feed.appendChild(container);
+
+    const video = container.querySelector('video');
+    const loader = container.querySelector('.loader');
+
+    video.onplaying = () => loader.style.display = 'none';
+    
+    // Activează sunetul și Play la click (rezolvă problema ecranului negru)
+    container.addEventListener('click', () => {
+        video.muted = false;
+        if (video.paused) video.play();
+        else video.pause();
+    });
+});
+
+// Autoplay logic
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        const video = entry.target.querySelector('video');
+        if (entry.isIntersecting) {
+            video.play().catch(() => {
+                console.log("Apasă pe ecran pentru a activa clipul!");
+            });
+        } else {
+            video.pause();
+        }
+    });
+}, { threshold: 0.6 });
+
+document.querySelectorAll('.video-container').forEach(c => observer.observe(c));
+</script>
+
+</body>
+</html>
