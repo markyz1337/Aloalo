@@ -3,65 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PWA într-un singur fișier</title>
-
-    <link rel="manifest" href='data:application/manifest+json,{"name":"AppCompacta","short_name":"App","start_url":"index.html","display":"standalone","background_color":"#ffffff","theme_color":"#007bff","icons":[{"src":"https://via.placeholder.com/192","sizes":"192x192","type":"image/png"}]}'>
+    <title>PWA Smart Hint</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="NumeApp">
+    <link rel="apple-touch-icon" href="https://via.placeholder.com/180">
 
     <style>
-        body { font-family: sans-serif; text-align: center; padding-top: 50px; }
-        /* Stilul bannerului de hint */
-        #pwa-hint {
-            display: none; position: fixed; bottom: 20px; left: 50%; 
-            transform: translateX(-50%); background: #333; color: #fff;
-            padding: 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            z-index: 100; width: 80%; max-width: 400px;
+        body { font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto; padding: 20px; }
+
+        /* Stil pentru Banner Android */
+        #pwa-android {
+            display: none; position: fixed; bottom: 20px; left: 10px; right: 10px;
+            background: #2196f3; color: white; padding: 15px; border-radius: 12px;
+            text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000;
         }
-        #btn-install { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+
+        /* Stil pentru Hint iOS (iPhone) */
+        #pwa-ios {
+            display: none; position: fixed; bottom: 30px; left: 50%;
+            transform: translateX(-50%); width: 280px; background: white;
+            color: #333; padding: 15px; border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 1000;
+            text-align: center; border: 1px solid #ddd;
+        }
+        /* Săgeata care arată spre butonul Share de jos pe iPhone */
+        #pwa-ios::after {
+            content: ''; position: absolute; bottom: -10px; left: 50%;
+            transform: translateX(-50%); border-left: 10px solid transparent;
+            border-right: 10px solid transparent; border-top: 10px solid white;
+        }
+
+        .btn-install { background: white; color: #2196f3; border: none; padding: 10px 20px; 
+                       border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        
+        .share-icon { width: 20px; vertical-align: middle; margin: 0 5px; }
     </style>
 </head>
 <body>
 
-    <h1>Pagina mea PWA</h1>
-    <p>Dacă ești pe mobil sau Chrome desktop, ar trebui să vezi invitația jos.</p>
+    <h1>Bun venit!</h1>
+    <p>Această pagină va detecta dacă ești pe Android sau iPhone.</p>
 
-    <div id="pwa-hint">
-        <div>Vrei să instalezi aplicația pe ecranul principal?</div>
-        <button id="btn-install">Instalează Acum</button>
+    <div id="pwa-android">
+        <div>Instalează aplicația pentru o experiență mai bună!</div>
+        <button id="btn-android-install" class="btn-install">Adaugă pe ecran</button>
+    </div>
+
+    <div id="pwa-ios">
+        <div style="font-size: 14px;">
+            Pentru a instala, apasă butonul 
+            <img src="https://img.icons8.com/ios/50/000000/upload.png" class="share-icon"> 
+            <strong>"Share"</strong> și apoi 
+            <strong>"Add to Home Screen"</strong>
+        </div>
+        <div style="color: #007aff; font-weight: bold; margin-top: 10px; cursor: pointer;" id="close-ios">Am înțeles</div>
     </div>
 
     <script>
+        // Verificări de sistem
+        const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+        // --- Logică pentru Android ---
         let deferredPrompt;
-
-        // 1. Înregistrare Service Worker (Fișierul sw.js e obligatoriu extern)
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
-
-        // 2. Logică detectare și afișare hint
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            // Arătăm bannerul doar dacă NU este deja instalat
-            if (!window.matchMedia('(display-mode: standalone)').matches) {
-                document.getElementById('pwa-hint').style.display = 'block';
+            if (!isStandalone) {
+                document.getElementById('pwa-android').style.display = 'block';
             }
         });
 
-        document.getElementById('btn-install').addEventListener('click', async () => {
+        document.getElementById('btn-android-install').addEventListener('click', async () => {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    document.getElementById('pwa-hint').style.display = 'none';
-                }
                 deferredPrompt = null;
+                document.getElementById('pwa-android').style.display = 'none';
             }
         });
 
-        // Ascundem dacă s-a instalat cu succes
-        window.addEventListener('appinstalled', () => {
-            document.getElementById('pwa-hint').style.display = 'none';
+        // --- Logică pentru iPhone ---
+        if (isIos && !isStandalone) {
+            // Afișăm hint-ul după 2 secunde să nu fie prea intruziv
+            setTimeout(() => {
+                document.getElementById('pwa-ios').style.display = 'block';
+            }, 2000);
+        }
+
+        document.getElementById('close-ios').addEventListener('click', () => {
+            document.getElementById('pwa-ios').style.display = 'none';
         });
+
+        // Înregistrare Service Worker (Obligatoriu)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
     </script>
 </body>
 </html>
