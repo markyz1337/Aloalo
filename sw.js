@@ -1,6 +1,5 @@
-// Service Worker Minimal
 self.addEventListener('install', (e) => {
-    console.log('PWA Service Worker activ.');
+    self.skipWaiting();
 });
 
 self.addEventListener('fetch', (e) => {
