@@ -1,106 +1,47 @@
 <!DOCTYPE html>
-<html lang="ro">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PWA Smart Hint</title>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Walkthrough Apartament Mobil</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="NumeApp">
-    <link rel="apple-touch-icon" href="https://via.placeholder.com/180">
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
+  </head>
+  
+  <body style="margin: 0; overflow: hidden; background-color: #000;">
 
-    <style>
-        body { font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto; padding: 20px; }
+    <a-scene 
+      renderer="antialias: true; colorManagement: true;"
+      xr-mode-ui="enabled: false"> <a-assets>
+        <a-asset-item id="model-demo" src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Sponza/glTF-Binary/Sponza.glb"></a-asset-item>
+      </a-assets>
 
-        /* Stil pentru Banner Android */
-        #pwa-android {
-            display: none; position: fixed; bottom: 20px; left: 10px; right: 10px;
-            background: #2196f3; color: white; padding: 15px; border-radius: 12px;
-            text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000;
-        }
+      <a-entity light="type: ambient; intensity: 1;"></a-entity>
+      <a-entity light="type: directional; intensity: 0.8;" position="1 4 3"></a-entity>
 
-        /* Stil pentru Hint iOS (iPhone) */
-        #pwa-ios {
-            display: none; position: fixed; bottom: 30px; left: 50%;
-            transform: translateX(-50%); width: 280px; background: white;
-            color: #333; padding: 15px; border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 1000;
-            text-align: center; border: 1px solid #ddd;
-        }
-        /* Săgeata care arată spre butonul Share de jos pe iPhone */
-        #pwa-ios::after {
-            content: ''; position: absolute; bottom: -10px; left: 50%;
-            transform: translateX(-50%); border-left: 10px solid transparent;
-            border-right: 10px solid transparent; border-top: 10px solid white;
-        }
+      <a-entity 
+        gltf-model="#model-demo" 
+        position="0 0 0" 
+        scale="1 1 1">
+      </a-entity>
 
-        .btn-install { background: white; color: #2196f3; border: none; padding: 10px 20px; 
-                       border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer; }
-        
-        .share-icon { width: 20px; vertical-align: middle; margin: 0 5px; }
-    </style>
-</head>
-<body>
+      <a-entity id="rig" movement-controls="controls: nipple; speed: 0.2;" position="0 0 5">
+        <a-entity camera 
+                  look-controls="pointerLockEnabled: true" 
+                  position="0 1.6 0">
+        </a-entity>
+      </a-entity>
 
-    <h1>Bun venit!</h1>
-    <p>Această pagină va detecta dacă ești pe Android sau iPhone.</p>
+      <a-sky color="#87CEEB"></a-sky>
 
-    <div id="pwa-android">
-        <div>Instalează aplicația pentru o experiență mai bună!</div>
-        <button id="btn-android-install" class="btn-install">Adaugă pe ecran</button>
+    </a-scene>
+
+    <div style="position: fixed; bottom: 30px; width: 100%; text-align: center; color: white; font-family: sans-serif; pointer-events: none; text-shadow: 1px 1px 2px black;">
+      <b>CONTROL MOBIL:</b><br>
+      Atinge stânga ecranului pentru JOYSTICK (mișcare)<br>
+      Glisează în dreapta pentru a PRIVI
     </div>
 
-    <div id="pwa-ios">
-        <div style="font-size: 14px;">
-            Pentru a instala, apasă butonul 
-            <img src="https://img.icons8.com/ios/50/000000/upload.png" class="share-icon"> 
-            <strong>"Share"</strong> și apoi 
-            <strong>"Add to Home Screen"</strong>
-        </div>
-        <div style="color: #007aff; font-weight: bold; margin-top: 10px; cursor: pointer;" id="close-ios">Am înțeles</div>
-    </div>
-
-    <script>
-        // Verificări de sistem
-        const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-        // --- Logică pentru Android ---
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            if (!isStandalone) {
-                document.getElementById('pwa-android').style.display = 'block';
-            }
-        });
-
-        document.getElementById('btn-android-install').addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt = null;
-                document.getElementById('pwa-android').style.display = 'none';
-            }
-        });
-
-        // --- Logică pentru iPhone ---
-        if (isIos && !isStandalone) {
-            // Afișăm hint-ul după 2 secunde să nu fie prea intruziv
-            setTimeout(() => {
-                document.getElementById('pwa-ios').style.display = 'block';
-            }, 2000);
-        }
-
-        document.getElementById('close-ios').addEventListener('click', () => {
-            document.getElementById('pwa-ios').style.display = 'none';
-        });
-
-        // Înregistrare Service Worker (Obligatoriu)
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
-    </script>
-</body>
+  </body>
 </html>
