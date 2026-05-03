@@ -678,51 +678,70 @@ async function loadData() {
     let data;
 
     if (!USE_API) {
-        // Folosim datele statice dacă API-ul este oprit
+        // Mod Offline (pentru teste)
         data = MOCK_DATA;
-        console.log("Aplicația rulează în mod OFFLINE (Constantă).");
-    } else {
-        // Preluăm datele reale din Supabase
-        let { data: dbData, error } = await _supabase
-            .from('users_data')
-            .select('*')
-            .eq('id', USER_ID)
-            .single();
-
-        if (error) {
-            console.error("Eroare la încărcare:", error);
-            return;
-        }
-        data = dbData;
-
-
-// --- LOGICA PENTRU ACUMULARE ZILNICĂ ---
-const acum = new Date();
-const ultimaActualizare = data.last_update ? new Date(data.last_update) : new Date();
-
-// Calculăm diferența de timp în milisecunde și o transformăm în zile întregi
-const diferentaTimp = acum.getTime() - ultimaActualizare.getTime();
-const zileDiferenta = Math.floor(diferentaTimp / (1000 * 3600 * 24));
-
-if (zileDiferenta > 0) {
-    const punctePerZi = 1; // Un punct pe zi
-    const puncteDeAdaugat = zileDiferenta * punctePerZi;
-    const newPoints = data.points + puncteDeAdaugat;
-
-    // Actualizăm în Supabase (setăm și ora la "acum" pentru a reseta cronometrul)
-    const { error: updateError } = await _supabase
-        .from('users_data')
-        .update({ 
-            points: newPoints, 
-            last_update: acum.toISOString() 
-        })
-        .eq('id', USER_ID);
-
-    if (!updateError) {
-        data.points = newPoints;
-        alert(`✨ Bine ai revenit! Ai primit ${puncteDeAdaugat} ${puncteDeAdaugat === 1 ? 'credit' : 'credite'} pentru ultimele ${zileDiferenta} ${zileDiferenta === 1 ? 'zi' : 'zile'}.`);
+        console.log("Aplicația rulează în mod OFFLINE.");
+        renderUI(data);
+        return;
     }
+
+    // 1. Preluăm datele reale din Supabase
+    let { data: dbData, error } = await _supabase
+        .from('users_data')
+        .select('*')
+        .eq('id', USER_ID)
+        .single();
+
+    if (error) {
+        console.error("Eroare la încărcare:", error);
+        return;
+    }
+    data = dbData;
+
+    // 2. --- LOGICA PENTRU ACUMULARE ZILNICĂ ---
+    const acum = new Date();
+    
+    if (!data.last_update) {
+        // DACĂ E GOL: Setăm data curentă ca punct de start (fără să dăm puncte acum)
+        await _supabase
+            .from('users_data')
+            .update({ last_update: acum.toISOString() })
+            .eq('id', USER_ID);
+        console.log("Momentul zero a fost setat în last_update.");
+    } else {
+        // DACĂ EXISTĂ DATĂ: Calculăm diferența de zile
+        const ultimaActualizare = new Date(data.last_update);
+        
+        // Calculăm diferența în milisecunde și transformăm în zile
+        const diferentaTimp = acum.getTime() - ultimaActualizare.getTime();
+        const zileDiferenta = Math.floor(diferentaTimp / (1000 * 3600 * 24));
+
+        if (zileDiferenta > 0) {
+            const punctePerZi = 1; 
+            const puncteDeAdaugat = zileDiferenta * punctePerZi;
+            const newPoints = data.points + puncteDeAdaugat;
+
+            // Actualizăm baza de date cu noile puncte și data curentă
+            const { error: updateError } = await _supabase
+                .from('users_data')
+                .update({ 
+                    points: newPoints, 
+                    last_update: acum.toISOString() 
+                })
+                .eq('id', USER_ID);
+
+            if (!updateError) {
+                data.points = newPoints;
+                // Notificare estetică pentru ea
+                alert(`✨ Bună, iubire! Ai primit ${puncteDeAdaugat} ${puncteDeAdaugat === 1 ? 'credit' : 'credite'} pentru ultimele ${zileDiferenta} ${zileDiferenta === 1 ? 'zi' : 'zile'}.`);
+            }
+        }
+    }
+
+    // 3. Trimitem datele către interfață
+    renderUI(data);
 }
+
 
 
 
