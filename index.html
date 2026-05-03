@@ -520,24 +520,45 @@ async function loadData() {
 function renderUI(userData) {
     document.getElementById('balance').innerText = userData.points;
     
+    // Verificăm dacă secțiunea privată este deblocată în acest moment
+    const isPrivateUnlocked = document.getElementById('private-grid').style.display === 'grid';
+    
     // Aplicăm sortarea înainte de randare
     const sortedPublic = getSortedItems(MENIU_PUBLIC);
     renderGrid('public-grid', sortedPublic, userData.points);
     
-    if(document.getElementById('private-grid').style.display === 'grid') {
+    if(isPrivateUnlocked) {
         const sortedPrivate = getSortedItems(MENIU_PRIVAT);
         renderGrid('private-grid', sortedPrivate, userData.points);
     }
 
-            const historyContainer = document.getElementById('history-list');
-            historyContainer.innerHTML = userData.history.length > 0 
-                ? userData.history.map(h => `
-                    <div class="history-item">
-                        <span>✨ ${h.split('(')[0]}</span>
-                        <span style="opacity:0.4; font-size:0.7rem;">${h.split('(')[1] ? h.split('(')[1].replace(')', '') : ''}</span>
-                    </div>`).join('')
-                : '<p style="font-size:0.8rem; opacity:0.5; text-align:center;">Nicio achiziție momentan.</p>';
-        }
+    const historyContainer = document.getElementById('history-list');
+    
+    if (userData.history.length > 0) {
+        historyContainer.innerHTML = userData.history.map(h => {
+            const numeBeneficiu = h.split('(')[0].trim();
+            const dataTranzactie = h.split('(')[1] ? h.split('(')[1].replace(')', '') : '';
+            
+            // Verificăm dacă beneficiul aparține meniului privat
+            const estePrivat = MENIU_PRIVAT.some(item => item.titlu === numeBeneficiu);
+            
+            // Aplicăm blur dacă este privat și secțiunea privată este încă blocată
+            const trebuieBlurat = estePrivat && !isPrivateUnlocked;
+            
+            const styleBlur = trebuieBlurat ? 'filter: blur(5px); user-select: none; opacity: 0.8;' : '';
+            const labelLocked = trebuieBlurat ? '<span style="font-size:0.6rem; color:var(--locked); margin-left:5px;">[LOCKED]</span>' : '';
+
+            return `
+                <div class="history-item">
+                    <span style="${styleBlur}">✨ ${numeBeneficiu} ${labelLocked}</span>
+                    <span style="opacity:0.4; font-size:0.7rem;">${dataTranzactie}</span>
+                </div>`;
+        }).join('');
+    } else {
+        historyContainer.innerHTML = '<p style="font-size:0.8rem; opacity:0.5; text-align:center;">Nicio achiziție momentan.</p>';
+    }
+}
+
 
 function renderGrid(containerId, items, currentPoints) {
     const container = document.getElementById(containerId);
@@ -606,14 +627,19 @@ async function buy(title, price) {
 }
 
 
-        function unlockPrivate() {
-            const pw = prompt("Cifrul secret:");
-            if (pw === PAROLA_SECRETA) {
-                document.querySelector('.locked-overlay').style.display = 'none';
-                document.getElementById('private-grid').style.display = 'grid';
-                loadData();
-            } else if (pw !== null) alert("Cod incorect.");
-        }
+function unlockPrivate() {
+    const pw = prompt("Cifrul secret:");
+    if (pw === PAROLA_SECRETA) {
+        document.querySelector('.locked-overlay').style.display = 'none';
+        document.getElementById('private-grid').style.display = 'grid';
+        
+        // Re-randăm toată interfața pentru a scoate blur-ul din istoric
+        loadData(); 
+    } else if (pw !== null) {
+        alert("Cod incorect.");
+    }
+}
+
 
         function toggleRadio() {
             const audio = document.getElementById('audio');
