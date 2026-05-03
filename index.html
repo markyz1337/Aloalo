@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Glow | Privilege Suite</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- EmailJS SDK -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script type="text/javascript">
+   (function(){
+      emailjs.init("N8CPm7SYQcJgTEKNd"); // Public Key-ul tău
+   })();
+</script>
+
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     <style>
@@ -640,6 +648,21 @@ async function buy(title, price) {
             .eq('id', USER_ID);
 
         if (!error) {
+            // --- TRIMITERE NOTIFICARE GMAIL ---
+            const emailParams = {
+                item_name: title,
+                item_price: price
+            };
+
+            // "default_service" este ID-ul standard, dacă nu l-ai schimbat în dashboard
+            emailjs.send("default_service", "template_2cudysi", emailParams)
+                .then(function() {
+                   console.log('Notificare trimisă cu succes!');
+                }, function(err) {
+                   console.error('Eroare EmailJS:', err);
+                });
+            // ----------------------------------
+
             alert("🎉 Felicitări! Ai deblocat: " + title);
             loadData();
         }
@@ -647,6 +670,7 @@ async function buy(title, price) {
         alert("Nu ai destule puncte!");
     }
 }
+
 
 
 function unlockPrivate() {
