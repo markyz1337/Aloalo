@@ -169,17 +169,22 @@
             <p style="opacity: 0.4; font-size: 0.9rem; margin-top: 5px;">Transformă momentele în amintiri.</p>
         </header>
 
-        <div class="section-label">Public Rewards</div>
-        <div class="grid" id="public-grid"></div>
+<div class="section-label">Public Rewards</div>
+<div id="public-section">
+    <div class="grid" id="public-grid"></div>
+    <button id="btn-more-public" class="btn-glass" style="width: auto; margin: 20px auto; display: none;" onclick="toggleExpand('public')">Vezi tot</button>
+</div>
 
-        <div class="section-label">Private Vault</div>
-        <div id="private-section">
-            <div class="locked-overlay" onclick="unlockPrivate()">
-                <span style="font-size: 1.5rem;">🔒</span>
-                <p style="margin: 10px 0 0 0; font-size: 0.75rem; font-weight: 700; color: var(--locked); text-transform: uppercase; letter-spacing: 1px;">Acces Restricționat</p>
-            </div>
-            <div class="grid" id="private-grid" style="display: none;"></div>
-        </div>
+<div class="section-label">Private Vault</div>
+<div id="private-section">
+    <div class="locked-overlay" onclick="unlockPrivate()">
+        <span style="font-size: 1.5rem;">🔒</span>
+        <p style="margin: 10px 0 0 0; font-size: 0.75rem; font-weight: 700; color: var(--locked); text-transform: uppercase; letter-spacing: 1px;">Acces Restricționat</p>
+    </div>
+    <div class="grid" id="private-grid" style="display: none;"></div>
+    <button id="btn-more-private" class="btn-glass" style="width: auto; margin: 20px auto; display: none;" onclick="toggleExpand('private')">Vezi tot</button>
+</div>
+
 
         <div class="section-label">Transaction History</div>
         <div class="glass-card" style="padding: 10px 20px;">
@@ -207,6 +212,20 @@
             { id: 101, titlu: "Ieșire la Sushi", desc: "Cină specială la restaurantul tău preferat.", pret: 30 },
             { id: 102, titlu: "Escapadă Weekend", desc: "O plecare surpriză de 2 zile.", pret: 150 }
         ];
+
+
+
+// Reținem dacă secțiunile sunt extinse sau nu
+let expanded = {
+    public: false,
+    private: false
+};
+
+function toggleExpand(section) {
+    expanded[section] = !expanded[section];
+    loadData(); // Re-randăm interfața pentru a aplica noua limită
+}
+
 
 async function loadData() {
     // 1. Preluăm datele utilizatorului din Supabase
@@ -274,23 +293,40 @@ async function loadData() {
                 : '<p style="font-size:0.8rem; opacity:0.5; text-align:center;">Nicio achiziție momentan.</p>';
         }
 
-        function renderGrid(containerId, items, currentPoints) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = items.map(item => `
-                <div class="glass-card">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:15px;">
-                        <h3 style="margin:0; font-size:1.1rem; line-height:1.2;">${item.titlu}</h3>
-                        <span class="price-tag">${item.pret} CR</span>
-                    </div>
-                    <p style="font-size:0.85rem; opacity:0.6; line-height:1.5; margin:0;">${item.desc}</p>
-                    <button class="btn-glass" 
-                        ${currentPoints < item.pret ? 'disabled' : ''} 
-                        onclick="buy('${item.titlu}', ${item.pret})">
-                        ${currentPoints < item.pret ? 'Insuficient' : 'Redeem'}
-                    </button>
-                </div>
-            `).join('');
-        }
+function renderGrid(containerId, items, currentPoints) {
+    const container = document.getElementById(containerId);
+    const sectionType = containerId.split('-')[0]; // Extrage 'public' sau 'private'
+    const isExpanded = expanded[sectionType];
+    
+    // Decidem câte iteme afișăm (toate sau doar primele 3)
+    const itemsToShow = isExpanded ? items : items.slice(0, 3);
+    
+    // Randăm cardurile
+    container.innerHTML = itemsToShow.map(item => `
+        <div class="glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:15px;">
+                <h3 style="margin:0; font-size:1.1rem; line-height:1.2;">${item.titlu}</h3>
+                <span class="price-tag">${item.pret} CR</span>
+            </div>
+            <p style="font-size:0.85rem; opacity:0.6; line-height:1.5; margin:0;">${item.desc}</p>
+            <button class="btn-glass" 
+                ${currentPoints < item.pret ? 'disabled' : ''} 
+                onclick="buy('${item.titlu}', ${item.pret})">
+                ${currentPoints < item.pret ? 'Insuficient' : 'Redeem'}
+            </button>
+        </div>
+    `).join('');
+
+    // Logică pentru butonul "Vezi tot / Vezi mai puțin"
+    const btnMore = document.getElementById(`btn-more-${sectionType}`);
+    if (items.length > 3) {
+        btnMore.style.display = 'block';
+        btnMore.innerText = isExpanded ? "Arată mai puține" : `Vezi tot (+${items.length - 3})`;
+    } else {
+        btnMore.style.display = 'none';
+    }
+}
+
 
         async function buy(title, price) {
             if (!confirm(`Confirmi folosirea a ${price} credite pentru "${title}"?`)) return;
