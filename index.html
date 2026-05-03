@@ -2,7 +2,7 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Glow | Privilege Suite</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -80,7 +80,7 @@
         }
 
         /* GRID & CARDS */
-        .app-container { width: 100%; max-width: 900px; margin-top: 60px; }
+        .app-container { width: 100%; max-width: 900px; margin-top: 10px; }
         .section-label { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin: 40px 0 15px 10px; font-weight: 700; opacity: 0.8; }
         
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
@@ -135,10 +135,23 @@
         .playing .bar { animation: bounce 0.8s infinite alternate; }
         @keyframes bounce { from { height: 4px; } to { height: 12px; } }
 
-        @media (max-width: 600px) {
-            #radio-popup { top: auto; bottom: 20px; left: 20px; }
-            #points-hud { top: auto; bottom: 20px; right: 20px; }
-        }
+@media (max-width: 600px) {
+    #radio-popup { 
+        top: auto; 
+        bottom: 20px; 
+        left: 20px; 
+    }
+    #points-hud { 
+        top: auto; 
+        bottom: 20px; 
+        right: 20px; 
+    }
+    /* Opțional: Poți mări padding-ul doar pe mobil dacă e nevoie */
+    body {
+        padding-bottom: 100px;
+    }
+}
+
     </style>
 </head>
 <body>
@@ -168,6 +181,14 @@
             <h1 style="margin:0; font-weight:700; font-size: 2.2rem; letter-spacing: -1px;">Privilege Suite</h1>
             <p style="opacity: 0.4; font-size: 0.9rem; margin-top: 5px;">Transformă momentele în amintiri.</p>
         </header>
+
+
+<div class="glass-card" style="margin-top: 20px; padding: 15px;">
+    <input type="text" id="search-input" placeholder="Caută un beneficiu (ex: sushi, masaj...)" 
+           style="width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--glass-border); color: white; padding: 10px; outline: none; font-family: inherit;"
+           oninput="handleSearch()">
+</div>
+
 
 <div class="section-label">Public Rewards</div>
 <div id="public-section">
@@ -247,6 +268,46 @@ function toggleExpand(section) {
 }
 
 
+// Variabilă globală pentru termenul de căutare
+let searchTerm = "";
+
+function handleSearch() {
+    searchTerm = document.getElementById('search-input').value.toLowerCase();
+    loadData(); // Re-randăm interfața cu noile filtre
+}
+
+function getSortedItems(items) {
+    if (!searchTerm) return items;
+
+    return [...items].sort((a, b) => {
+        const scoreA = calculateScore(a, searchTerm);
+        const scoreB = calculateScore(b, searchTerm);
+        return scoreB - scoreA; // Cele cu scor mai mare primele
+    });
+}
+
+function calculateScore(item, term) {
+    let score = 0;
+    const title = item.titlu.toLowerCase();
+    const desc = item.desc.toLowerCase();
+
+    // Potrivire exactă în titlu (Prioritate maximă)
+    if (title.includes(term)) score += 100;
+    // Potrivire exactă în descriere
+    if (desc.includes(term)) score += 50;
+    
+    // Potriviri parțiale (cuvinte individuale)
+    const words = term.split(" ");
+    words.forEach(word => {
+        if (word.length < 2) return;
+        if (title.includes(word)) score += 10;
+        if (desc.includes(word)) score += 5;
+    });
+
+    return score;
+}
+
+
 async function loadData() {
     let data;
 
@@ -295,14 +356,17 @@ async function loadData() {
 
 
 
-        function renderUI(userData) {
-            document.getElementById('balance').innerText = userData.points;
-            
-            renderGrid('public-grid', MENIU_PUBLIC, userData.points);
-            
-            if(document.getElementById('private-grid').style.display === 'grid') {
-                renderGrid('private-grid', MENIU_PRIVAT, userData.points);
-            }
+function renderUI(userData) {
+    document.getElementById('balance').innerText = userData.points;
+    
+    // Aplicăm sortarea înainte de randare
+    const sortedPublic = getSortedItems(MENIU_PUBLIC);
+    renderGrid('public-grid', sortedPublic, userData.points);
+    
+    if(document.getElementById('private-grid').style.display === 'grid') {
+        const sortedPrivate = getSortedItems(MENIU_PRIVAT);
+        renderGrid('private-grid', sortedPrivate, userData.points);
+    }
 
             const historyContainer = document.getElementById('history-list');
             historyContainer.innerHTML = userData.history.length > 0 
@@ -316,11 +380,12 @@ async function loadData() {
 
 function renderGrid(containerId, items, currentPoints) {
     const container = document.getElementById(containerId);
-    const sectionType = containerId.split('-')[0]; // Extrage 'public' sau 'private'
-    const isExpanded = expanded[sectionType];
+    const sectionType = containerId.split('-')[0];
     
-    // Decidem câte iteme afișăm (toate sau doar primele 3)
-    const itemsToShow = isExpanded ? items : items.slice(0, 3);
+    // Dacă se caută ceva, ignorăm limita de 3 și arătăm tot ce e relevant
+    const isExpanded = expanded[sectionType] || searchTerm.length > 0;
+    
+    const itemsToShow = isExpanded ? items : items.slice(0, 2);
     
     // Randăm cardurile
     container.innerHTML = itemsToShow.map(item => `
@@ -340,9 +405,9 @@ function renderGrid(containerId, items, currentPoints) {
 
     // Logică pentru butonul "Vezi tot / Vezi mai puțin"
     const btnMore = document.getElementById(`btn-more-${sectionType}`);
-    if (items.length > 3) {
+    if (items.length > 2) {
         btnMore.style.display = 'block';
-        btnMore.innerText = isExpanded ? "Arată mai puține" : `Vezi tot (+${items.length - 3})`;
+        btnMore.innerText = isExpanded ? "Arată mai puține" : `Vezi tot (+${items.length - 2})`;
     } else {
         btnMore.style.display = 'none';
     }
@@ -366,7 +431,7 @@ async function buy(title, price) {
             .from('users_data')
             .update({ 
                 points: newPoints, 
-                history: newHistory.slice(0,5) 
+                history: newHistory.slice(0, 5) 
             })
             .eq('id', USER_ID);
 
@@ -403,14 +468,7 @@ async function buy(title, price) {
             }
         }
 
-
-
-
-
         loadData();
-        
-        
-        
         
     </script>
 </body>
