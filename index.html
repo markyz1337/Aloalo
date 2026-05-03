@@ -31,6 +31,15 @@
             min-height: 100vh;
         }
 
+
+.text-locked {
+    filter: blur(6px);
+    user-select: none;         /* Previne selectarea textului */
+    pointer-events: none;      /* Previne click/dreapta pe el */
+    -webkit-user-select: none; /* Safari */
+}
+
+
 .hope-title { 
     font-family: 'Dancing Script', cursive;
     font-size: 3.9rem; /* Ajustat pentru a se potrivi în layout */
@@ -518,46 +527,59 @@ async function loadData() {
 
 
 function renderUI(userData) {
+    // 1. Actualizăm creditele în HUD
     document.getElementById('balance').innerText = userData.points;
     
-    // Verificăm dacă secțiunea privată este deblocată în acest moment
+    // 2. Verificăm dacă secțiunea privată este deblocată (starea DOM)
     const isPrivateUnlocked = document.getElementById('private-grid').style.display === 'grid';
     
-    // Aplicăm sortarea înainte de randare
+    // 3. Randăm Grila Publică
     const sortedPublic = getSortedItems(MENIU_PUBLIC);
     renderGrid('public-grid', sortedPublic, userData.points);
     
-    if(isPrivateUnlocked) {
+    // 4. Randăm Grila Privată (doar dacă e deblocată)
+    if (isPrivateUnlocked) {
         const sortedPrivate = getSortedItems(MENIU_PRIVAT);
         renderGrid('private-grid', sortedPrivate, userData.points);
     }
 
+    // 5. Randăm Istoricul (cu protecție pentru elementele private)
     const historyContainer = document.getElementById('history-list');
     
-    if (userData.history.length > 0) {
+    if (userData.history && userData.history.length > 0) {
         historyContainer.innerHTML = userData.history.map(h => {
-            const numeBeneficiu = h.split('(')[0].trim();
-            const dataTranzactie = h.split('(')[1] ? h.split('(')[1].replace(')', '') : '';
+            // Extragem numele beneficiului și data
+            const parti = h.split('(');
+            const numeReal = parti[0].trim();
+            const dataTranzactie = parti[1] ? parti[1].replace(')', '') : '';
             
-            // Verificăm dacă beneficiul aparține meniului privat
-            const estePrivat = MENIU_PRIVAT.some(item => item.titlu === numeBeneficiu);
+            // Identificăm dacă acest beneficiu face parte din categoria Privată
+            const estePrivat = MENIU_PRIVAT.some(item => item.titlu === numeReal);
+            const trebuieProtejat = estePrivat && !isPrivateUnlocked;
+
+            // Logica anti-trișat:
+            // Dacă trebuie protejat, punem un text generic și aplicăm clasa de blur
+            const textDeAfisat = trebuieProtejat ? "Beneficiu Privat Confidențial" : numeReal;
+            const clasaStil = trebuieProtejat ? "text-locked" : "";
             
-            // Aplicăm blur dacă este privat și secțiunea privată este încă blocată
-            const trebuieBlurat = estePrivat && !isPrivateUnlocked;
-            
-            const styleBlur = trebuieBlurat ? 'filter: blur(5px); user-select: none; opacity: 0.8;' : '';
-            const labelLocked = trebuieBlurat ? '<span style="font-size:0.6rem; color:var(--locked); margin-left:5px;">[LOCKED]</span>' : '';
+            // Stil inline suplimentar pentru siguranță maximă
+            const extraStyle = trebuieProtejat ? 'style="user-select: none; pointer-events: none;"' : '';
 
             return `
                 <div class="history-item">
-                    <span style="${styleBlur}">✨ ${numeBeneficiu} ${labelLocked}</span>
-                    <span style="opacity:0.4; font-size:0.7rem;">${dataTranzactie}</span>
+                    <span class="${clasaStil}" ${extraStyle}>
+                        ✨ ${textDeAfisat}
+                    </span>
+                    <span style="opacity:0.4; font-size:0.7rem;">
+                        ${dataTranzactie}
+                    </span>
                 </div>`;
         }).join('');
     } else {
-        historyContainer.innerHTML = '<p style="font-size:0.8rem; opacity:0.5; text-align:center;">Nicio achiziție momentan.</p>';
+        historyContainer.innerHTML = '<p style="font-size:0.8rem; opacity:0.5; text-align:center;">Nicio achiziție înregistrată.</p>';
     }
 }
+
 
 
 function renderGrid(containerId, items, currentPoints) {
