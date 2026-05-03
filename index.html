@@ -638,7 +638,7 @@ async function buy(title, price) {
             .from('users_data')
             .update({ 
                 points: newPoints, 
-                history: newHistory.slice(0, 10) // Păstrăm ultimele 10 în istoric
+                history: newHistory.slice(0,5) // Păstrăm ultimele 10 în istoric
             })
             .eq('id', USER_ID);
 
