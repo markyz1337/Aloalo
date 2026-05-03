@@ -2,752 +2,711 @@
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pentru Iubirea Mea ❤️</title>
-    
-    <!-- FONTURI -->
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Glow | Privilege Suite</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- CSS (Designul site-ului) -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     <style>
-:root {
-    --primary-pink: #ff4d6d;
-    --secondary-pink: #ffb3c1;
-    --dark-pink: #c9184a;
-    --glass-bg: rgba(255, 255, 255, 0.25);
-    --glass-border: rgba(255, 255, 255, 0.4);
-    --text-color: #4a0e1c;
-}
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent: #ff4d6d;
+            --accent-glow: rgba(255, 77, 109, 0.4);
+            --bg-dark: #0a0a0c;
+            --locked: #7400b8;
+        }
 
-html, body {
-    max-width: 100%;
-    overflow-x: hidden; /* Taie orice conținut care iese în lateral */
-    position: relative;
-    width: 100%;
-    touch-action: pan-y; /* Permite doar scroll sus-jos, blochează gesturile laterale de browser */
-}
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 77, 109, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(116, 0, 184, 0.05) 0%, transparent 40%);
+            color: #ffffff;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
 
-* {
-    box-sizing: border-box; /* Previne lățirea elementelor din cauza padding-ului */
-}
 
-/* De asemenea, asigură-te că literele individuale nu sunt forțate pe rânduri noi */
-.letter {
-    display: inline-block;
-    white-space: pre; /* Menține spațiile și previne ruperea ciudată */
-    opacity: 0;
-    transform: translateY(5px);
-    animation: fadeLetter 0.4s ease forwards;
-}
-
-@keyframes fadeLetter {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-#reason-display {
-    min-height: 80px;
-    margin-top: 40px;    /* Ajustează valoarea (20px, 300px, 40px) după bunul plac */
-    display: block;
-    line-height: 1.6;
-    padding: 0 10px;
-    
-    /* SOLUȚIA: Previne ruperea cuvintelor */
-    word-break: keep-all;     /* Nu rupe cuvântul sub nicio formă */
-    overflow-wrap: normal;    /* Se asigură că textul curge normal */
-    hyphens: none;            /* Dezactivează cratimele automate */
+.text-locked {
+    filter: blur(6px);
+    user-select: none;         /* Previne selectarea textului */
+    pointer-events: none;      /* Previne click/dreapta pe el */
+    -webkit-user-select: none; /* Safari */
 }
 
 
-
-
-
-/* 1. FUNDAL DINAMIC CU GRADIENT ȘI FORME */
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Montserrat', sans-serif;
-    background-color: #fff0f3;
-    /* Adăugăm un gradient complex în spate pentru contrast */
-    background-image: 
-        radial-gradient(at 0% 0%, hsla(343, 100%, 76%, 0.3) 0, transparent 50%), 
-        radial-gradient(at 100% 100%, hsla(350, 100%, 88%, 0.5) 0, transparent 50%),
-        radial-gradient(at 50% 50%, hsla(340, 100%, 92%, 0.2) 0, transparent 100%);
-    color: var(--text-color);
-    overflow-x: hidden;
-    scroll-behavior: smooth;
-    min-height: 100vh;
-}
-
-h1, h2 {
+.hope-title { 
     font-family: 'Dancing Script', cursive;
-    color: var(--dark-pink);
-    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5);
-}
-
-/* 2. EFECTUL DE STICLĂ (REUTILIZABIL) */
-.glass-effect {
-    background: var(--glass-bg);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid var(--glass-border);
-    border-radius: 25px;
-    box-shadow: 0 8px 32px 0 rgba(255, 77, 109, 0.2);
-}
-
-/* 3. HERO SECTION */
-header {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    background: transparent;
-}
-
-.hero-title { 
-    font-size: 5rem; /* Mărimea pe desktop */
+    font-size: 3.9rem; /* Ajustat pentru a se potrivi în layout */
     margin: 0; 
-    animation: float 3s ease-in-out infinite;
-    background: linear-gradient(45deg, var(--dark-pink), var(--primary-pink));
+    background: linear-gradient(45deg, #c9184a, #ff4d6d);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    width: 100%;
-    padding: 0 10px; /* Previne tăierea literelor la margine */
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.1);
+    animation: floatTitle 3s ease-in-out infinite;
+    display: inline-block;
 }
 
-.hero-subtitle {
-    font-size: 1.3rem;
-    font-weight: 800; /* Textul mai gros ajută la vizibilitate când culoarea e similară cu fundalul */
-    padding: 0 40px;
-    max-width: 600px;
-    margin: 20px auto;
-    line-height: 1.5;
-    text-align: center;
-    opacity: 0.7;
-
-    /* CULOARE ROZ ÎNCHIS (TON PE TON) */
-    color: #c9184a; /* Un roz închis, derivat din paleta ta, care oferă contrast dar rămâne în temă */
-    
-    /* EFECT DE PROFUNZIME ȘI SUAVE GLOW */
-    text-shadow: 
-        1px 1px 0px rgba(255, 255, 255, 0.5), /* O mică bordură albă în spate pentru a "ridica" textul */
-        0px 0px 10px rgba(255, 77, 109, 0.2); /* Un glow roz foarte discret */
-}
-
-
-
-
-
-/* Ajustare pentru ecrane foarte mici (telefoane) */
-@media (max-width: 480px) {
-    .hero-subtitle {
-        font-size: 1.1rem;
-        padding: 0 40px; /* Padding și mai mare pe ecrane mici ca să fie sigur centrat */
-    }
-    .hero-title {
-        font-size: 5.5rem; /* Micșorăm puțin titlul să nu dea overflow */
-    }
-}
-
-
-/* 4. BUTOANE */
-.btn-main {
-    background: rgba(255, 77, 109, 0.7);
-    backdrop-filter: blur(5px);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 15px 40px;
-    border-radius: 50px;
-    cursor: pointer;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 4px 15px rgba(255, 77, 109, 0.3);
-    margin-top: 25px;
-}
-
-.btn-main:hover {
-    background: var(--dark-pink);
-    transform: scale(1.1);
-    box-shadow: 0 8px 25px rgba(255, 77, 109, 0.5);
-}
-
-/* 5. TIMELINE & CARDS */
-.section { 
-    padding: 80px 25px; /* 80px sus/jos, 25px stânga/dreapta */
-    max-width: 900px; 
-    margin: 0 auto; 
-    width: 100%; /* Ne asigurăm că ocupă spațiul dar respectă padding-ul */
-}
-
-.timeline-item { 
-    margin-bottom: 40px; 
-    padding: 30px; 
-    position: relative;
-    background: rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(10px);
-    border-radius: 25px;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 10px 30px rgba(255, 77, 109, 0.1);
-    transition: transform 0.3s ease;
-}
-
-.timeline-item:hover {
-    /* Am eliminat transform: translateX */
-    background: rgba(255, 255, 255, 0.45);
-    box-shadow: 0 15px 35px rgba(255, 77, 109, 0.2); /* Opțional: adaugă un pic de umbră în loc de mișcare */
-}
-
-
-
-.timeline-item p {
-    padding: 0 15px; /* Adaugă spațiu în stânga și dreapta textului */
-    line-height: 1.6; /* Îmbunătățește citirea prin spațiere verticală */
-    margin-bottom: 10px;
-}
-
-/* Și pentru titlurile din interiorul cardurilor */
-.timeline-item h3 {
-    padding: 0 15px;
-    margin-top: 0;
-}
-
-
-/* 6. GENERATOR ȘI SEIF (STIL GLASS COMPLET) */
-.reason-card, .vault-box {
-    padding: 50px;
-    text-align: center;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-radius: 35px;
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
-}
-
-/* 7. FORMULARE GLASS */
-input[type="text"] {
-    background: rgba(255, 255, 255, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(10px);
-    padding: 15px;
-    border-radius: 20px;
-    width: 80%;
-    margin-bottom: 20px;
-    color: var(--dark-pink);
-    font-weight: 600;
-    outline: none;
-    transition: 0.3s;
-}
-
-input[type="text"]:focus {
-    background: rgba(255, 255, 255, 0.6);
-    border-color: var(--primary-pink);
-    width: 85%;
-}
-
-/* 8. ANIMATII */
-@keyframes float {
+@keyframes floatTitle {
     0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-15px) rotate(1deg); }
+    50% { transform: translateY(-10px) rotate(1deg); }
 }
 
-.hearts-bg {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    z-index: -1;
-    pointer-events: none;
-}
-
-.hidden { display: none; }
-
-
-.glass-effect, .timeline-item, .reason-card, .vault-box {
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    transition: backdrop-filter 1.2s ease, background 1.2s ease;
-    will-change: transform, backdrop-filter;
-    
-    /* ACEASTA ESTE LINIA MAGICĂ: */
-    transform: translateZ(0); 
+/* Ajustare pentru ecrane mici */
+@media (max-width: 480px) {
+    .hope-title {
+        font-size: 4.1rem;
+    }
 }
 
 
-/* Starea de scroll: eliminăm DURATA tranziției (0s) ca să eliberăm procesorul IMEDIAT */
-.is-scrolling .glass-effect, 
-.is-scrolling .timeline-item, 
-.is-scrolling .reason-card,
-.is-scrolling .vault-box {
-    backdrop-filter: blur(0px) !important;
-    -webkit-backdrop-filter: blur(0px) !important;
-    transition: none !important; /* CRITICAL: Nu mai lăsa browserul să calculeze pașii intermediari */
+.search-container {
+    margin-top: 20px; 
+    padding: 0 25px !important; 
+    height: 48px; 
+    display: flex !important; /* Forțează layout de tip rând */
+    flex-direction: row !important; /* Elementele stau unul lângă altul, nu sub altul */
+    align-items: center !important; /* Aliniere verticală perfectă */
+    gap: 12px;
+    border-radius: 50px !important;
+    min-height: unset !important;
 }
 
-
-.is-scrolling {
-    pointer-events: none; /* Ignoră orice atingere în timpul mișcării */
-    user-select: none;    /* Previne selectarea accidentală a textului */
+/* Ne asigurăm că input-ul nu are margini care să îl împingă */
+#search-input {
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: normal !important;
 }
 
 
 
-/* Containerul pentru hartă cu colțuri rotunjite */
-.map-container.dark-maps {
-    margin: 15px;
-    opacity: 0.98;
-    border-radius: 20px; /* Colțuri pronunțate */
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    
-    /* EFECTUL DE DARK MODE PRIN FILTRE */
-    filter: invert(0%) hue-rotate(10deg) brightness(90%) contrast(100%);
-    
-    transition: all 0.5s ease;
+
+        /* HUD RADIO */
+        #radio-popup {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(20, 20, 22, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 10px 18px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .radio-title {
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+
+        /* HUD PUNCTE */
+        #points-hud {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(20, 20, 22, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 12px 20px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #points-hud .val {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #fff, #ffb3c1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* GRID & CARDS */
+        .app-container { width: 100%; max-width: 900px; margin-top: 10px; }
+        .section-label { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin: 40px 0 15px 10px; font-weight: 700; opacity: 0.8; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .glass-card:hover { transform: translateY(-5px); border-color: var(--accent-glow); background: rgba(255, 255, 255, 0.06); }
+        
+        .price-tag { font-size: 0.8rem; font-weight: 700; color: var(--accent); background: rgba(255, 77, 109, 0.1); padding: 4px 10px; border-radius: 10px; }
+        
+        .btn-glass {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
+            color: white; padding: 12px; border-radius: 18px; width: 100%; cursor: pointer;
+            font-weight: 600; font-size: 0.75rem; text-transform: uppercase; margin-top: 15px; transition: 0.3s;
+        }
+        .btn-glass:hover:not(:disabled) { background: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+        .btn-glass:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* ISTORIC */
+        .history-list { list-style: none; padding: 0; margin-top: 20px; }
+        .history-item { 
+            background: rgba(255,255,255,0.02); 
+            margin-bottom: 8px; 
+            padding: 12px 20px; 
+            border-radius: 15px; 
+            font-size: 0.85rem; 
+            display: flex; 
+            justify-content: space-between;
+            border: 1px solid var(--glass-border);
+        }
+
+        .locked-overlay {
+            text-align: center; padding: 40px 20px;
+            background: rgba(116, 0, 184, 0.03);
+            border: 1px dashed var(--locked);
+            border-radius: 28px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .viz { display: flex; gap: 3px; align-items: flex-end; height: 12px; }
+        .bar { width: 3px; height: 4px; background: var(--accent); border-radius: 1px; }
+        .playing .bar { animation: bounce 0.8s infinite alternate; }
+        @keyframes bounce { from { height: 4px; } to { height: 12px; } }
+
+@media (max-width: 600px) {
+    #radio-popup { 
+        top: auto; 
+        bottom: 20px; 
+        left: 20px; 
+    }
+    #points-hud { 
+        top: auto; 
+        bottom: 20px; 
+        right: 20px; 
+    }
+    /* Opțional: Poți mări padding-ul doar pe mobil dacă e nevoie */
+    body {
+        padding-bottom: 100px;
+    }
 }
 
-/* Când atingi harta, putem face culorile să revină la normal sau să se lumineze */
-.map-container.dark-maps:hover {
-    filter: invert(90%) hue-rotate(180deg) brightness(110%);
-}
-
-.map-container iframe {
-    display: block;
-    /* Elimină saturația excesivă care apare uneori la inversare */
-    filter: grayscale(0.1); 
-}
-
-
-
-footer { 
-    text-align: center; 
-    padding: 40px; 
-    font-size: 0.8rem; 
-    opacity: 0.7; 
-}
     </style>
 </head>
 <body>
 
-<div style="
-    position: fixed;
-    top: 20%;
-    left: 10%;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(255,77,109,0.4) 0%, rgba(255,179,193,0) 70%);
-    z-index: -1;
-    filter: blur(50px);
-"></div>
+    <div id="radio-popup">
+        <button id="play-btn" style="background:var(--accent); border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;" onclick="toggleRadio()">
+            <svg id="p-play" viewBox="0 0 24 24" width="14"><path fill="white" d="M8 5v14l11-7z"/></svg>
+            <svg id="p-pause" viewBox="0 0 24 24" style="display:none;" width="14"><path fill="white" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+        <div class="radio-info">
+            <span class="radio-title">HOPE FM</span>
+            <div class="viz" id="viz"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+        </div>
+        <audio id="audio" src="https://sergiumusic.duckdns.org/hope"></audio>
+    </div>
 
-<div style="
-    position: fixed;
-    bottom: 10%;
-    right: 5%;
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(201,24,74,0.3) 0%, rgba(255,240,243,0) 70%);
-    z-index: -1;
-    filter: blur(60px);
-"></div>
-
-
-
-    <!-- AUDIO PLAYER -->
-    <audio id="romanticMusic" loop>
-        <source src="https://raw.githubusercontent.com/markyz1337/hope/refs/heads/main/music/The%20Motans%20-%20Inainte%20Sa%20Ne%20Fi%20Nascut%20%EF%BD%9C%20Videoclip%20Oficial.mp3" type="audio/mpeg">
-    </audio>
-
-    <!-- FUNDAL ANIMAT -->
-    <div class="hearts-bg" id="hearts-container"></div>
-
-    <!-- START SITE -->
-    <header>
-        <h1 class="hero-title">Hope</h1>
-        <p class="hero-subtitle">Astăzi este ziua noastră, ia un loc liber și bucură-te de moment...</p>
-        <button class="btn-main" onclick="startExperience()">Începe călătoria 💛</button>
-    </header>
-
-    <!-- TIMELINE -->
-<!-- TIMER SECTION -->
-<section class="section">
-    <div class="glass-effect" style="padding: 40px; text-align: center;">
-        <h2 style="margin-bottom: 20px;">Timpul petrecut împreună</h2>
-        <div id="timer" style="font-size: 1.5rem; font-weight: 600; color: var(--dark-pink); letter-spacing: 1px;">
-            <span id="years">0</span> ani 
-            <span id="days">0</span> zile 
-            <span id="hours">0</span> ore 
-            <span id="minutes">0</span> min 
-            <span id="seconds">0</span> sec
+    <div id="points-hud">
+        <span style="filter: drop-shadow(0 0 5px var(--accent)); font-size: 1.2rem;">✨</span>
+        <div style="display: flex; flex-direction: column;">
+            <span class="val" id="balance">--</span>
+            <span style="font-size: 0.5rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">Credits</span>
         </div>
     </div>
-</section>
 
-<!-- TIMELINE -->
-<section id="timeline-sec" class="section">
-    <h2 class="section-title" style="text-align: center;">Drumul nostru împreună</h2>
-    <div class="timeline">
-        <div class="timeline-item">
-            <h3>Ziua în care ne-am cunoscut</h3>
-            <p>Data: 01.01.2010 - A fost momentul în care am știut că viața mea nu va mai fi la fel.</p>
-        </div>
-<div class="timeline-item">
-    <h3>Prima noastră vacanță</h3>
-    <p>La [Locație], unde am adunat amintiri pe care le păstrez și acum în suflet.</p>
-    
-    <div class="map-container dark-maps">
-        <iframe 
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2848.816641870287!2d26.1002573!3d44.4368511!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40b1ff3945e43f5d%3A0x64e8248a39b36024!2sPia%C8%9Ba%20Universit%C4%83%C8%9Bii!5e0!3m2!1sro!2sro!4v1715500000000!5m2!1sro!2sro" 
-            width="100%" 
-            height="145" 
-            style="border:0;" 
-            allowfullscreen="" 
-            loading="eager">
-        </iframe>
-    </div>
+    <div class="app-container">
+<header style="text-align: center; margin-bottom: 20px;">
+    <h1 class="hope-title">Love Store</h1>
+</header>
+
+
+
+<div class="glass-card search-container">
+    <!-- Iconița Lupa -->
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.5; flex-shrink: 0;">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+
+<input type="text" id="search-input" placeholder="Caută un beneficiu..." 
+       style="flex: 1; background: transparent; border: none; color: white; outline: none; font-family: inherit; font-size: 0.9rem; height: 100%; padding: 0;"
+       oninput="handleSearch()"
+       onfocus="preventScroll(event)">
+
+
+    <!-- Butonul de Ștergere (X) -->
+    <button id="clear-search" onclick="clearSearch()" 
+            style="background: transparent; border: none; color: white; cursor: pointer; padding: 0; opacity: 0; transition: 0.3s; pointer-events: none; display: flex; align-items: center; justify-content: center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+    </button>
 </div>
 
 
-        <div class="timeline-item">
-            <h3>Un moment doar al nostru</h3>
-            <p>Când am realizat că tu ești „acasă" pentru mine.</p>
-        </div>
+
+
+
+
+<div class="section-label">Public Rewards</div>
+<div id="public-section">
+    <div class="grid" id="public-grid"></div>
+    <button id="btn-more-public" class="btn-glass" style="width: auto; margin: 20px auto; display: none;" onclick="toggleExpand('public')">Vezi tot</button>
+</div>
+
+<div class="section-label">Private Vault</div>
+<div id="private-section">
+    <div class="locked-overlay" onclick="unlockPrivate()">
+        <span style="font-size: 1.5rem;">🔒</span>
+        <p style="margin: 10px 0 0 0; font-size: 0.75rem; font-weight: 700; color: var(--locked); text-transform: uppercase; letter-spacing: 1px;">Acces Restricționat</p>
     </div>
-</section>
+    <div class="grid" id="private-grid" style="display: none;"></div>
+    <button id="btn-more-private" class="btn-glass" style="width: auto; margin: 20px auto; display: none;" onclick="toggleExpand('private')">Vezi tot</button>
+</div>
 
 
-    <!-- MOTIVE INTERACTIVE -->
-    <section class="section">
-        <div class="reason-card">
-            <h2>De ce te iubesc?</h2>
-            <p>Sunt mii de motive, dar iată unul la întâmplare:</p>
-            <button class="btn-main" onclick="generateReason()">Apasă pentru un motiv</button>
-            <p id="reason-display">Aștept să mă descoperi... ✨</p>
-        </div>
-    </section>
-
-    <!-- SEIFUL SECRET -->
-    <section id="vault" class="section">
-        <div class="vault-box">
-            <h2>🔐 Seiful cu Amintiri</h2>
-            <p>Introdu parola<br>(hint: toate literele pe care le-ai salvat)</p>
-<input type="text" id="passwordInput" placeholder="Parola secretă..." onfocus="savePosition()" onblur="restorePosition()">
-            <br>
-            <button class="btn-main" onclick="checkPassword()">Deschide Seiful</button>
-            
-            <div id="secretMessage" class="hidden" style="margin-top: 30px;">
-                <h3>Ai reușit! ❤️</h3>
-                <p>Această melodie este pentru tine. Te iubesc mai mult decât pot spune în cuvinte!</p>
-                <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJmZzR6ZzZ6ZzZ6ZzZ6ZzZ6ZzZ6ZzZ6ZzZ6ZzZ6ZzZ6ZzZ6JmU9YyZ3PTE/kZzH671zP8-I0/giphy.gif" alt="Hearts" style="width:100%; max-width:300px; border-radius: 15px;">
+        <div class="section-label">Transaction History</div>
+        <div class="glass-card" style="padding: 10px 20px;">
+            <div id="history-list">
+                <p style="font-size: 0.8rem; opacity: 0.5; text-align: center;">Se încarcă istoricul...</p>
             </div>
         </div>
-    </section>
+    </div>
 
-    <footer>
-        <p>Creat cu toată dragostea de [Numele Tău] | 2026</p>
-    </footer>
-
-    <!-- JAVASCRIPT (Logica Interactivă) -->
     <script>
-        const audio = document.getElementById('romanticMusic');
+// --- CONFIGURARE MOD FUNCTIONARE ---
+const USE_API = true; 
+// ------------------------------------
 
+const SUPABASE_URL = 'https://fndjrfieitieqzafhyzz.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_bHDKjiKAVHqW199ICw7i2g_O3olYMAr';
 
+// Inițializăm variabila cu null
+let _supabase = null;
 
-function updateTimer() {
-    const startDate = new Date("2010-01-01T00:00:00");
-    const now = new Date();
-    const diff = now - startDate;
-
-    const msPerSecond = 1000;
-    const msPerMinute = msPerSecond * 60;
-    const msPerHour = msPerMinute * 60;
-    const msPerDay = msPerHour * 24;
-    const msPerYear = msPerDay * 365.25; // Aproximație pentru anii bisecți
-
-    const years = Math.floor(diff / msPerYear);
-    const days = Math.floor((diff % msPerYear) / msPerDay);
-    const hours = Math.floor((diff % msPerDay) / msPerHour);
-    const minutes = Math.floor((diff % msPerHour) / msPerMinute);
-    const seconds = Math.floor((diff % msPerMinute) / msPerSecond);
-
-    document.getElementById("years").innerText = years;
-    document.getElementById("days").innerText = days;
-    document.getElementById("hours").innerText = hours;
-    document.getElementById("minutes").innerText = minutes;
-    document.getElementById("seconds").innerText = seconds;
+// Creăm clientul DOAR dacă USE_API este true
+if (USE_API) {
+    _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 }
 
-// Pornim timer-ul imediat și îl actualizăm la fiecare secundă
-setInterval(updateTimer, 1000);
-updateTimer();
+const USER_ID = 'iubita-mea';
+const PAROLA_SECRETA = "1234";
+
+const MOCK_DATA = {
+    points: 100,
+    history: ["Mod Offline Activat (Creat de Gemini)"],
+    last_update: new Date().toISOString()
+};
 
 
 
-let savedScrollPosition = 0;
-
-function savePosition() {
-    // Salvăm poziția actuală de scroll înainte ca tastatura să se deschidă
-    savedScrollPosition = window.scrollY;
-}
-
-function restorePosition() {
-    // Returnăm pagina exact unde a fost după ce tastatura se închide
-    // Folosim un mic timeout pentru a lăsa browserul să proceseze închiderea tastaturii
-    setTimeout(() => {
-        window.scrollTo({
-            top: savedScrollPosition,
-            behavior: 'smooth'
-        });
-    }, 100);
-}
-
-
-
-function startExperience() {
-    audio.play().catch(e => console.log("Audio necesită interacțiune directă."));
-    
-    startLetterSequence(); 
-    
-    // Identificăm elementul către care mergem
-    const target = document.getElementById('timeline-sec');
-    
-    // Folosim funcția noastră custom pentru scroll lent (2000ms = 2 secunde)
-    smoothScrollTo(target, 3000); 
-}
-
-
-function smoothScrollTo(element, duration) {
-    const targetPosition = element.getBoundingClientRect().top + window.pageYOffset;
-    const startPosition = window.pageYOffset;
-    const distance = targetPosition - startPosition;
-    let startTime = null;
-
-    // 1. Adăugăm clasa de performanță imediat
-    document.body.classList.add('is-scrolling');
-
-    function easeInOutQuart(t) {
-        return t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
-    }
-
-    function step(currentTime) {
-        if (!startTime) startTime = currentTime;
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-
-        const easedProgress = easeInOutQuart(progress);
-        window.scrollTo(0, startPosition + distance * easedProgress);
-
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
-        } else {
-            // 2. Curățăm clasa după ce scroll-ul s-a terminat complet
-            setTimeout(() => {
-                document.body.classList.remove('is-scrolling');
-            }, 200); 
-        }
-    }
-
-    window.requestAnimationFrame(step);
-}
-
-
-
-
-
-
-
-        // 2. GENERATOR DE INIMI (ANIMATIE)
-        function createHeart() {
-            const container = document.getElementById('hearts-container');
-            const heart = document.createElement('div');
-            
-            heart.innerHTML = '❤️';
-            heart.style.position = 'fixed';
-            heart.style.left = Math.random() * 100 + 'vw';
-            heart.style.top = '100vh';
-            heart.style.fontSize = (Math.random() * 20 + 10) + 'px';
-            heart.style.opacity = Math.random();
-            heart.style.pointerEvents = 'none';
-            heart.style.transition = 'transform 6s linear, opacity 8s';
-            
-            container.appendChild(heart);
-
-            setTimeout(() => {
-                heart.style.transform = `translateY(-110vh) rotate(${Math.random() * 360}deg)`;
-                heart.style.opacity = '0';
-            }, 100);
-
-            setTimeout(() => { heart.remove(); }, 6000);
-        }
-        setInterval(createHeart, 400); // Creează o inimă la fiecare 0.4 secunde
-
-        
-// 1. Lista originală
-const motiveOriginale = [
-    "Pentru modul în care mă asculți când am o zi grea.",
-    "Pentru că ești singura persoană care mă face să râd cu adevărat.",
-    "Pentru bunătatea ta care nu cunoaște limite.",
-    "Pentru că ești cea mai frumoasă persoană, atât la interior cât și la exterior.",
-    "Pentru toate momentele în care ne înțelegem doar din priviri.",
-    "Pentru că mă inspiri să fiu o versiune mai bună a mea."
+const MENIU_PUBLIC = [
+    // --- Relaxare și Casă ---
+    { id: 1, titlu: "Masaj Spate", desc: "30 minute de relaxare completă.", pret: 15 },
+    { id: 2, titlu: "Seară de Film", desc: "Tu alegi filmul, eu aduc floricelele.", pret: 5 },
+    { id: 3, titlu: "Mic Dejun", desc: "Omletă și cafea, servite la pat.", pret: 10 },
+    { id: 4, titlu: "Zi fără Vase", desc: "Eu spăl tot ce se adună azi.", pret: 10 },
+    { id: 5, titlu: "Masaj Tălpi", desc: "După o zi lungă pe tocuri sau prin oraș.", pret: 10 },
+    { id: 6, titlu: "Playlist Personalizat", desc: "O selecție de piese care îmi amintesc de tine.", pret: 3 },
+    { id: 7, titlu: "Seară de Jocuri", desc: "Boardgames sau consolă, promit să te las să câștigi.", pret: 5 },
+    { id: 8, titlu: "Baie cu Spumă", desc: "Pregătesc cada, lumânările și muzica ambientală.", pret: 8 },
+    { id: 9, titlu: "Gătit Împreună", desc: "Eu sunt ajutorul tău de bucătar (și spăl vasele).", pret: 5 },
+    { id: 10, titlu: "Curățenie Generală", desc: "Azi fac eu toată treaba prin casă.", pret: 15 },
+    { id: 11, titlu: "Comandă Food Delivery", desc: "Alegi orice aplicație, plătesc eu.", pret: 12 },
+    { id: 12, titlu: "Seară de Citit", desc: "Liniște deplină și ceai cald în timp ce citești.", pret: 2 },
+    { id: 13, titlu: "Home Spa Day", desc: "Mască de față, manichiură și relaxare.", pret: 12 },
+    { id: 14, titlu: "Fără Social Media", desc: "O seară întreagă fără telefoane, doar noi doi.", pret: 5 },
+    { id: 15, titlu: "Mic Dejun de Duminică", desc: "Clătite cu ciocolată și fructe.", pret: 10 },
+    { id: 16, titlu: "Masaj Capilar", desc: "15 minute de răsfăț total.", pret: 5 },
+    { id: 17, titlu: "DJ de Mașină", desc: "Tu ești DJ-ul la următorul drum lung.", pret: 4 },
+    { id: 18, titlu: "Picnic în Sufragerie", desc: "Pătură pe jos, gustări și atmosferă de munte.", pret: 7 },
+    { id: 19, titlu: "Călcat Rufe", desc: "Muntele de haine dispare prin magie.", pret: 10 },
+    { id: 20, titlu: "Compliment la oră", desc: "O zi în care ești ridicată în slăvi oră de oră.", pret: 5 },
+    { id: 21, titlu: "Desertul Preferat", desc: "Trec pe la cofetărie în drum spre casă.", pret: 7 },
+    { id: 22, titlu: "Karaoke acasă", desc: "Cântăm și ne prostim oricât vrei.", pret: 4 },
+    { id: 23, titlu: "Scrisoare de Dragoste", desc: "Scrisă de mână, pe hârtie.", pret: 5 },
+    { id: 24, titlu: "Planificare Vacanță", desc: "Eu caut zboruri, cazare și itinerariu.", pret: 15 },
+    { id: 25, titlu: "Degustare Brânzeturi", desc: "Vin, brânză și fructe, pregătite de mine.", pret: 18 },
+    { id: 26, titlu: "Seară de Pictură", desc: "Două pânze, vin și multă creativitate.", pret: 10 }
 ];
 
-// 2. Copia listei (din care vom șterge pe rând)
-let motiveRamase = [...motiveOriginale];
-let isTyping = false; 
+const MENIU_PRIVAT = [
+    // --- Ieșiri și Evenimente ---
+    { id: 101, titlu: "Ieșire la Sushi", desc: "Cină specială la restaurantul tău preferat.", pret: 30 },
+    { id: 102, titlu: "Escapadă Weekend", desc: "O plecare surpriză de 2 zile.", pret: 150 },
+    { id: 103, titlu: "Seară la Teatru", desc: "O ocazie să ne îmbrăcăm elegant.", pret: 40 },
+    { id: 104, titlu: "Degustare de Vin", desc: "O vizită la o cramă sau un wine bar.", pret: 35 },
+    { id: 105, titlu: "Bilet la Concert", desc: "Mergem la trupa ta preferată.", pret: 60 },
+    { id: 106, titlu: "Curs de Dans", desc: "O oră de salsa sau tango împreună.", pret: 25 },
+    { id: 107, titlu: "Plimbare cu Barca", desc: "O oră de liniște pe lac.", pret: 20 },
+    { id: 108, titlu: "O zi la Spa", desc: "Relaxare totală în piscine termale.", pret: 50 },
+    { id: 109, titlu: "Shopping Spree", desc: "Alegi un obiect vestimentar, eu îl achit.", pret: 70 },
+    { id: 110, titlu: "Road Trip de o Zi", desc: "Destinația e surpriză.", pret: 45 },
+    { id: 111, titlu: "Voucher Iertare", desc: "Scapi de o mică ceartă instantaneu.", pret: 50 },
+    { id: 112, titlu: "Ziua de DA", desc: "Spun DA la orice cerință timp de 24h.", pret: 100 },
 
-function generateReason() {
-    if (isTyping) return; 
-    
-    // Dacă am terminat toate motivele, resetăm lista
-    if (motiveRamase.length === 0) {
-        motiveRamase = [...motiveOriginale];
-        console.log("Lista a fost resetată!"); // Doar pentru control în consolă
-    }
-
-    const display = document.getElementById('reason-display');
-    
-    // Alegem un index la întâmplare din cele rămase
-    const randomIndex = Math.floor(Math.random() * motiveRamase.length);
-    // Extragem motivul (splice îl scoate din listă și ni-l returnează)
-    const randomMotiv = motiveRamase.splice(randomIndex, 1)[0];
-    
-    display.innerHTML = '';
-    isTyping = true;
-
-    const words = randomMotiv.split(" ");
-    let globalLetterIndex = 0;
-
-    words.forEach((word, wordIndex) => {
-        const wordSpan = document.createElement('span');
-        wordSpan.style.display = 'inline-block';
-        wordSpan.style.whiteSpace = 'nowrap';
-
-        const letters = word.split("");
-        letters.forEach((char) => {
-            const charSpan = document.createElement('span');
-            charSpan.textContent = char;
-            charSpan.className = 'letter';
-            charSpan.style.animationDelay = `${globalLetterIndex * 0.04}s`;
-            
-            wordSpan.appendChild(charSpan);
-            globalLetterIndex++;
-        });
-
-        display.appendChild(wordSpan);
-
-        if (wordIndex < words.length - 1) {
-            const space = document.createElement('span');
-            space.innerHTML = '&nbsp;';
-            display.appendChild(space);
-            globalLetterIndex++;
-        }
-    });
-
-    const totalDuration = globalLetterIndex * 40 + 400;
-    setTimeout(() => {
-        isTyping = false;
-    }, totalDuration);
-}
-
-
-// --- LOGICĂ MEDIA SESSION CU IMAGINI RANDOM (FĂRĂ REPETARE) ---
-
-const imaginiPoveste = [
-    "https://www.publicdomainpictures.net/pictures/270000/nahled/senior-couple-watching-sunset.jpg",
-    "https://images.stockcake.com/public/d/c/f/dcf17efe-f386-413e-8c7d-994c99836f33_large/romantic-sunset-silhouette-stockcake.jpg",
-    "https://www.shutterstock.com/image-photo/romantic-day-walk-sunset-600nw-2724656517.jpg"
+    // --- Intimitate și Erotism ---
+    { id: 201, titlu: "Masaj Sensual", desc: "Cu uleiuri esențiale, pe tot corpul, fără grabă.", pret: 15 },
+    { id: 202, titlu: "Quickie Surprise", desc: "Oricând, oriunde se poate.", pret: 10 },
+    { id: 203, titlu: "Lingerie Shopping", desc: "Alegi ceva sexy, eu sunt sponsorul.", pret: 40 },
+    { id: 204, titlu: "Striptease Privat", desc: "Fac un show pe muzica ta preferată.", pret: 20 },
+    { id: 205, titlu: "Fantezie Îndeplinită", desc: "Tu propui, eu execut (în limitele agreate).", pret: 50 },
+    { id: 206, titlu: "Duș în Doi", desc: "Săpun, apă caldă și multă pasiune.", pret: 8 },
+    { id: 207, titlu: "Joc de Rol", desc: "Ne alegem personaje noi pentru o noapte.", pret: 25 },
+    { id: 208, titlu: "Maraton Sărutări", desc: "10 minute în care nu facem altceva.", pret: 5 },
+    { id: 209, titlu: "Blindfolded Fun", desc: "Te las pe tine să preiei controlul complet.", pret: 20 },
+    { id: 210, titlu: "Poze Interzise", desc: "O sesiune foto privată doar pentru noi.", pret: 15 },
+    { id: 211, titlu: "Noapte la Hotel", desc: "Schimbăm peisajul pentru adrenalină.", pret: 80 },
+    { id: 212, titlu: "Morning Delight", desc: "Trezire cu un răsfăț oral.", pret: 15 },
+    { id: 213, titlu: "Slow Sex Night", desc: "O noapte dedicată exclusiv plăcerii tale.", pret: 30 },
+    { id: 214, titlu: "Alegere Jucărie", desc: "Cumpărăm ceva nou pentru dormitor.", pret: 35 }
 ];
 
-let imaginiRamase = [];
-const mesajLitere = ["T", "E", " ", "I", "U", "B", "E", "S", "C"];
-let letterIndex = 0;
 
-// 1. Funcția care amestecă imaginile și le preîncarcă
-function prepareImages() {
-    // Facem o copie a listei originale și o amestecăm
-    imaginiRamase = [...imaginiPoveste].sort(() => Math.random() - 0.5);
+
+
+let lastScrollPos = 0;
+
+function preventScroll(e) {
+    // Salvăm poziția actuală de scroll înainte ca browserul să o schimbe
+    lastScrollPos = window.scrollY || document.documentElement.scrollTop;
     
-    // Pre-loading în cache-ul browserului pentru tranziții fine
-    imaginiPoveste.forEach(url => {
-        const img = new Image();
-        img.src = url;
-    });
-}
-
-// 2. Funcția care alege următoarea imagine fără să repete
-function getNextImage() {
-    if (imaginiRamase.length === 0) {
-        // Dacă s-au terminat, reîmprospătăm lista și o amestecăm din nou
-        imaginiRamase = [...imaginiPoveste].sort(() => Math.random() - 0.5);
-    }
-    // Extragem ultima imagine din lista amestecată
-    return imaginiRamase.pop();
-}
-
-// 3. Actualizarea metadatelor Media Session
-function updateMediaMetadata() {
-    if ('mediaSession' in navigator) {
-        const imagineCurenta = getNextImage();
-        const literaCurenta = mesajLitere[letterIndex];
-        const charDisplay = literaCurenta === " " ? "❤️" : literaCurenta;
-
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: charDisplay, 
-            artist: 'Pentru Hope ❤️',
-            album: 'Amintirile Noastre',
-            artwork: [
-                { 
-                    src: imagineCurenta, 
-                    sizes: '512x512', 
-                    type: 'image/jpeg' 
-                }
-            ]
-        });
-
-        // Avansăm litera din "T E I U B E S C"
-        letterIndex = (letterIndex + 1) % mesajLitere.length;
-    }
-}
-
-// 4. Pornirea experienței (apelează asta în startExperience)
-function startLetterSequence() {
-    prepareImages();
-    updateMediaMetadata();
-    // Schimbă imaginea și litera la fiecare 2.5 secunde pentru a lăsa timp de vizionare
-    setInterval(updateMediaMetadata, 6500);
+    // Folosim un timeout scurt pentru a anula scroll-ul automat al browserului
+    setTimeout(() => {
+        window.scrollTo(0, lastScrollPos);
+    }, 10);
 }
 
 
 
 
-function checkPassword() {
-    // Forțăm închiderea tastaturii pe mobil
-    document.getElementById('passwordInput').blur(); 
+// Reținem dacă secțiunile sunt extinse sau nu
+let expanded = {
+    public: false,
+    private: false
+};
+
+function toggleExpand(section) {
+    expanded[section] = !expanded[section];
+    loadData(); // Re-randăm interfața pentru a aplica noua limită
+}
+
+
+// Variabilă globală pentru termenul de căutare
+let searchTerm = "";
+
+// Actualizăm handleSearch pentru a ară și butonul de ștergere
+function handleSearch() {
+    const input = document.getElementById('search-input');
+    const clearBtn = document.getElementById('clear-search');
     
-    const input = document.getElementById('passwordInput').value.toLowerCase();
-    const secret = document.getElementById('secretMessage');
+    searchTerm = input.value.toLowerCase();
     
-    if(input === "7") { 
-        secret.classList.remove('hidden');
-        secret.style.animation = "float 2s infinite";
-        
-        // Scroll lin către mesajul secret care tocmai a apărut
-        setTimeout(() => {
-            secret.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 300);
-
-        alert("Cod corect! Te iubesc! ❤️");
+    // Arătăm/ascundem butonul X
+    if (searchTerm.length > 0) {
+        clearBtn.style.opacity = "0.5";
+        clearBtn.style.pointerEvents = "auto";
     } else {
-        alert("Hopa! Nu e parola corectă. Încearcă data noastră specială.");
+        clearBtn.style.opacity = "0";
+        clearBtn.style.pointerEvents = "none";
+    }
+    
+    loadData();
+}
+
+function clearSearch() {
+    const input = document.getElementById('search-input');
+    input.value = ""; // Șterge textul
+    
+    handleSearch(); // Resetează grid-ul de beneficii
+    
+    // Aceasta este linia cheie:
+    input.blur(); // Elimină focusul și închide tastatura pe mobil
+}
+
+
+
+function getSortedItems(items) {
+    if (!searchTerm) return items;
+
+    return [...items].sort((a, b) => {
+        const scoreA = calculateScore(a, searchTerm);
+        const scoreB = calculateScore(b, searchTerm);
+        return scoreB - scoreA; // Cele cu scor mai mare primele
+    });
+}
+
+function calculateScore(item, term) {
+    let score = 0;
+    const title = item.titlu.toLowerCase();
+    const desc = item.desc.toLowerCase();
+
+    // Potrivire exactă în titlu (Prioritate maximă)
+    if (title.includes(term)) score += 100;
+    // Potrivire exactă în descriere
+    if (desc.includes(term)) score += 50;
+    
+    // Potriviri parțiale (cuvinte individuale)
+    const words = term.split(" ");
+    words.forEach(word => {
+        if (word.length < 2) return;
+        if (title.includes(word)) score += 10;
+        if (desc.includes(word)) score += 5;
+    });
+
+    return score;
+}
+
+
+async function loadData() {
+    let data;
+
+    if (!USE_API) {
+        // Folosim datele statice dacă API-ul este oprit
+        data = MOCK_DATA;
+        console.log("Aplicația rulează în mod OFFLINE (Constantă).");
+    } else {
+        // Preluăm datele reale din Supabase
+        let { data: dbData, error } = await _supabase
+            .from('users_data')
+            .select('*')
+            .eq('id', USER_ID)
+            .single();
+
+        if (error) {
+            console.error("Eroare la încărcare:", error);
+            return;
+        }
+        data = dbData;
+
+        // Logica pentru acumulare retroactivă (doar în mod API)
+        const acum = new Date();
+        const ultimaActualizare = data.last_update ? new Date(data.last_update) : new Date();
+        const luniDiferenta = (acum.getFullYear() - ultimaActualizare.getFullYear()) * 12 + (acum.getMonth() - ultimaActualizare.getMonth());
+
+        if (luniDiferenta > 0) {
+            const punctePerLuna = 10;
+            const puncteDeAdaugat = luniDiferenta * punctePerLuna;
+            const newPoints = data.points + puncteDeAdaugat;
+
+            const { error: updateError } = await _supabase
+                .from('users_data')
+                .update({ points: newPoints, last_update: acum.toISOString() })
+                .eq('id', USER_ID);
+
+            if (!updateError) {
+                data.points = newPoints;
+                alert(`✨ Surpriză! Ai primit ${puncteDeAdaugat} credite.`);
+            }
+        }
+    }
+
+    renderUI(data);
+}
+
+
+
+function renderUI(userData) {
+    // 1. Actualizăm creditele în HUD
+    document.getElementById('balance').innerText = userData.points;
+    
+    // 2. Verificăm dacă secțiunea privată este deblocată (starea DOM)
+    const isPrivateUnlocked = document.getElementById('private-grid').style.display === 'grid';
+    
+    // 3. Randăm Grila Publică
+    const sortedPublic = getSortedItems(MENIU_PUBLIC);
+    renderGrid('public-grid', sortedPublic, userData.points);
+    
+    // 4. Randăm Grila Privată (doar dacă e deblocată)
+    if (isPrivateUnlocked) {
+        const sortedPrivate = getSortedItems(MENIU_PRIVAT);
+        renderGrid('private-grid', sortedPrivate, userData.points);
+    }
+
+    // 5. Randăm Istoricul (cu protecție pentru elementele private)
+    const historyContainer = document.getElementById('history-list');
+    
+    if (userData.history && userData.history.length > 0) {
+        historyContainer.innerHTML = userData.history.map(h => {
+            // Extragem numele beneficiului și data
+            const parti = h.split('(');
+            const numeReal = parti[0].trim();
+            const dataTranzactie = parti[1] ? parti[1].replace(')', '') : '';
+            
+            // Identificăm dacă acest beneficiu face parte din categoria Privată
+            const estePrivat = MENIU_PRIVAT.some(item => item.titlu === numeReal);
+            const trebuieProtejat = estePrivat && !isPrivateUnlocked;
+
+            // Logica anti-trișat:
+            // Dacă trebuie protejat, punem un text generic și aplicăm clasa de blur
+            const textDeAfisat = trebuieProtejat ? "Tranzacție Privată" : numeReal;
+            const clasaStil = trebuieProtejat ? "text-locked" : "";
+            
+            // Stil inline suplimentar pentru siguranță maximă
+            const extraStyle = trebuieProtejat ? 'style="user-select: none; pointer-events: none;"' : '';
+
+            return `
+                <div class="history-item">
+                    <span class="${clasaStil}" ${extraStyle}>
+                        ✨ ${textDeAfisat}
+                    </span>
+                    <span style="opacity:0.4; font-size:0.7rem;">
+                        ${dataTranzactie}
+                    </span>
+                </div>`;
+        }).join('');
+    } else {
+        historyContainer.innerHTML = '<p style="font-size:0.8rem; opacity:0.5; text-align:center;">Nicio achiziție înregistrată.</p>';
     }
 }
 
+
+
+function renderGrid(containerId, items, currentPoints) {
+    const container = document.getElementById(containerId);
+    const sectionType = containerId.split('-')[0];
+    
+    // Dacă se caută ceva, ignorăm limita de 3 și arătăm tot ce e relevant
+    const isExpanded = expanded[sectionType] || searchTerm.length > 0;
+    
+    const itemsToShow = isExpanded ? items : items.slice(0, 2);
+    
+    // Randăm cardurile
+    container.innerHTML = itemsToShow.map(item => `
+        <div class="glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:15px;">
+                <h3 style="margin:0; font-size:1.1rem; line-height:1.2;">${item.titlu}</h3>
+                <span class="price-tag">${item.pret} CR</span>
+            </div>
+            <p style="font-size:0.85rem; opacity:0.6; line-height:1.5; margin:0;">${item.desc}</p>
+            <button class="btn-glass" 
+                ${currentPoints < item.pret ? 'disabled' : ''} 
+                onclick="buy('${item.titlu}', ${item.pret})">
+                ${currentPoints < item.pret ? 'Insuficient' : 'Redeem'}
+            </button>
+        </div>
+    `).join('');
+
+    // Logică pentru butonul "Vezi tot / Vezi mai puțin"
+    const btnMore = document.getElementById(`btn-more-${sectionType}`);
+    if (items.length > 2) {
+        btnMore.style.display = 'block';
+        btnMore.innerText = isExpanded ? "Arată mai puține" : `Vezi tot (+${items.length - 2})`;
+    } else {
+        btnMore.style.display = 'none';
+    }
+}
+
+async function buy(title, price) {
+    if (!USE_API) {
+        alert("Sistemul de achiziții este momentan suspendat (Mentenanță).");
+        return;
+    }
+
+    if (!confirm(`Confirmi folosirea a ${price} credite pentru "${title}"?`)) return;
+
+    let { data } = await _supabase.from('users_data').select('*').eq('id', USER_ID).single();
+
+    if (data.points >= price) {
+        const newPoints = data.points - price;
+        const newHistory = [`${title} (${new Date().toLocaleDateString('ro-RO')})`, ...data.history];
+
+        const { error } = await _supabase
+            .from('users_data')
+            .update({ 
+                points: newPoints, 
+                history: newHistory.slice(0, 5) 
+            })
+            .eq('id', USER_ID);
+
+        if (!error) {
+            // --- NOTIFICARE TELEGRAM (În loc de Gmail) ---
+            const botToken = "8665700807:AAGUePmZoK7Oo83QdFPJWUmpv-EjOMG9A-A";
+            const chatId = "976748886";
+            const mesaj = `🔔 *Achiziție Nouă!*\n\n❤️ Iubita ta a ales: *${title}*\n💰 Preț: ${price} credite\n✨ Credite rămase: ${newPoints}`;
+
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: mesaj,
+                    parse_mode: "Markdown"
+                })
+            })
+            .then(() => console.log("Notificare Telegram trimisă!"))
+            .catch(err => console.error("Eroare Telegram:", err));
+            // ----------------------------------------------
+
+            alert("🎉 Felicitări! Ai deblocat: " + title);
+            loadData();
+        }
+    } else {
+        alert("Nu ai destule puncte!");
+    }
+}
+
+
+
+
+function unlockPrivate() {
+    const pw = prompt("Cifrul secret:");
+    if (pw === PAROLA_SECRETA) {
+        document.querySelector('.locked-overlay').style.display = 'none';
+        document.getElementById('private-grid').style.display = 'grid';
+        
+        // Re-randăm toată interfața pentru a scoate blur-ul din istoric
+        loadData(); 
+    } else if (pw !== null) {
+        alert("Cod incorect.");
+    }
+}
+
+
+        function toggleRadio() {
+            const audio = document.getElementById('audio');
+            const viz = document.getElementById('viz');
+            if (audio.paused) {
+                audio.play(); viz.classList.add('playing');
+                document.getElementById('p-play').style.display = 'none';
+                document.getElementById('p-pause').style.display = 'block';
+            } else {
+                audio.pause(); viz.classList.remove('playing');
+                document.getElementById('p-play').style.display = 'block';
+                document.getElementById('p-pause').style.display = 'none';
+            }
+        }
+
+
+
+
+
+        loadData();
+        
+        
+        
+        
     </script>
 </body>
 </html>
