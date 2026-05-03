@@ -195,11 +195,31 @@
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://fndjrfieitieqzafhyzz.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_bHDKjiKAVHqW199ICw7i2g_O3olYMAr';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        const USER_ID = 'iubita-mea';
-        const PAROLA_SECRETA = "1234";
+// --- CONFIGURARE MOD FUNCTIONARE ---
+const USE_API = true; 
+// ------------------------------------
+
+const SUPABASE_URL = 'https://fndjrfieitieqzafhyzz.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_bHDKjiKAVHqW199ICw7i2g_O3olYMAr';
+
+// Inițializăm variabila cu null
+let _supabase = null;
+
+// Creăm clientul DOAR dacă USE_API este true
+if (USE_API) {
+    _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+}
+
+const USER_ID = 'iubita-mea';
+const PAROLA_SECRETA = "1234";
+
+const MOCK_DATA = {
+    points: 100,
+    history: ["Mod Offline Activat (Creat de Gemini)"],
+    last_update: new Date().toISOString()
+};
+
+
 
         const MENIU_PUBLIC = [
             { id: 1, titlu: "Masaj Spate", desc: "30 minute de relaxare completă.", pret: 15 },
@@ -228,50 +248,51 @@ function toggleExpand(section) {
 
 
 async function loadData() {
-    // 1. Preluăm datele utilizatorului din Supabase
-    let { data, error } = await _supabase
-        .from('users_data')
-        .select('*')
-        .eq('id', USER_ID)
-        .single();
+    let data;
 
-    if (error) {
-        console.error("Eroare la încărcare:", error);
-        return;
-    }
-
-    // 2. Logica pentru acumulare retroactivă (puncte pe lunile în care nu a intrat)
-    const acum = new Date();
-    // Dacă nu există o dată salvată, folosim data curentă ca referință
-    const ultimaActualizare = data.last_update ? new Date(data.last_update) : new Date();
-
-    // Calculăm diferența matematică de luni (Ani * 12 + Luni)
-    const luniDiferenta = (acum.getFullYear() - ultimaActualizare.getFullYear()) * 12 + (acum.getMonth() - ultimaActualizare.getMonth());
-
-    if (luniDiferenta > 0) {
-        const punctePerLuna = 10;
-        const puncteDeAdaugat = luniDiferenta * punctePerLuna;
-        const newPoints = data.points + puncteDeAdaugat;
-
-        // 3. Actualizăm baza de date cu noile puncte și data curentă (ISO string)
-        const { error: updateError } = await _supabase
+    if (!USE_API) {
+        // Folosim datele statice dacă API-ul este oprit
+        data = MOCK_DATA;
+        console.log("Aplicația rulează în mod OFFLINE (Constantă).");
+    } else {
+        // Preluăm datele reale din Supabase
+        let { data: dbData, error } = await _supabase
             .from('users_data')
-            .update({ 
-                points: newPoints, 
-                last_update: acum.toISOString() 
-            })
-            .eq('id', USER_ID);
+            .select('*')
+            .eq('id', USER_ID)
+            .single();
 
-        if (!updateError) {
-            // Actualizăm și datele locale pentru a reflecta schimbarea în UI
-            data.points = newPoints;
-            alert(`✨ Surpriză! Ai primit ${puncteDeAdaugat} credite pentru ultimele ${luniDiferenta} luni.`);
+        if (error) {
+            console.error("Eroare la încărcare:", error);
+            return;
+        }
+        data = dbData;
+
+        // Logica pentru acumulare retroactivă (doar în mod API)
+        const acum = new Date();
+        const ultimaActualizare = data.last_update ? new Date(data.last_update) : new Date();
+        const luniDiferenta = (acum.getFullYear() - ultimaActualizare.getFullYear()) * 12 + (acum.getMonth() - ultimaActualizare.getMonth());
+
+        if (luniDiferenta > 0) {
+            const punctePerLuna = 10;
+            const puncteDeAdaugat = luniDiferenta * punctePerLuna;
+            const newPoints = data.points + puncteDeAdaugat;
+
+            const { error: updateError } = await _supabase
+                .from('users_data')
+                .update({ points: newPoints, last_update: acum.toISOString() })
+                .eq('id', USER_ID);
+
+            if (!updateError) {
+                data.points = newPoints;
+                alert(`✨ Surpriză! Ai primit ${puncteDeAdaugat} credite.`);
+            }
         }
     }
 
-    // 4. Randăm interfața cu datele proaspete
     renderUI(data);
 }
+
 
 
         function renderUI(userData) {
@@ -327,32 +348,37 @@ function renderGrid(containerId, items, currentPoints) {
     }
 }
 
+async function buy(title, price) {
+    if (!USE_API) {
+        alert("Sistemul de achiziții este momentan suspendat (Mentenanță).");
+        return;
+    }
 
-        async function buy(title, price) {
-            if (!confirm(`Confirmi folosirea a ${price} credite pentru "${title}"?`)) return;
+    if (!confirm(`Confirmi folosirea a ${price} credite pentru "${title}"?`)) return;
 
-            let { data } = await _supabase.from('users_data').select('*').eq('id', USER_ID).single();
+    let { data } = await _supabase.from('users_data').select('*').eq('id', USER_ID).single();
 
-            if (data.points >= price) {
-                const newPoints = data.points - price;
-                const newHistory = [`${title} (${new Date().toLocaleDateString('ro-RO')})`, ...data.history];
+    if (data.points >= price) {
+        const newPoints = data.points - price;
+        const newHistory = [`${title} (${new Date().toLocaleDateString('ro-RO')})`, ...data.history];
 
-                const { error } = await _supabase
-                    .from('users_data')
-                    .update({ 
-                        points: newPoints, 
-                        history: newHistory.slice(0, 10) 
-                    })
-                    .eq('id', USER_ID);
+        const { error } = await _supabase
+            .from('users_data')
+            .update({ 
+                points: newPoints, 
+                history: newHistory.slice(0, 10) 
+            })
+            .eq('id', USER_ID);
 
-                if (!error) {
-                    alert("🎉 Felicitări! Ai deblocat: " + title);
-                    loadData();
-                }
-            } else {
-                alert("Nu ai destule puncte!");
-            }
+        if (!error) {
+            alert("🎉 Felicitări! Ai deblocat: " + title);
+            loadData();
         }
+    } else {
+        alert("Nu ai destule puncte!");
+    }
+}
+
 
         function unlockPrivate() {
             const pw = prompt("Cifrul secret:");
@@ -377,7 +403,15 @@ function renderGrid(containerId, items, currentPoints) {
             }
         }
 
+
+
+
+
         loadData();
+        
+        
+        
+        
     </script>
 </body>
 </html>
