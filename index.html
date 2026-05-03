@@ -208,30 +208,52 @@
             { id: 102, titlu: "Escapadă Weekend", desc: "O plecare surpriză de 2 zile.", pret: 150 }
         ];
 
-        async function loadData() {
-            let { data, error } = await _supabase
-                .from('users_data')
-                .select('*')
-                .eq('id', USER_ID)
-                .single();
+async function loadData() {
+    // 1. Preluăm datele utilizatorului din Supabase
+    let { data, error } = await _supabase
+        .from('users_data')
+        .select('*')
+        .eq('id', USER_ID)
+        .single();
 
-            if (error) return;
+    if (error) {
+        console.error("Eroare la încărcare:", error);
+        return;
+    }
 
-            // Verificare Puncte Lunare (+10 puncte la prima intrare din lună)
-            const now = new Date();
-            const currentMonth = `${now.getFullYear()}-${now.getMonth() + 1}`;
-            
-            if (data.last_update !== currentMonth) {
-                const newPoints = data.points + 10;
-                await _supabase
-                    .from('users_data')
-                    .update({ points: newPoints, last_update: currentMonth })
-                    .eq('id', USER_ID);
-                data.points = newPoints;
-            }
+    // 2. Logica pentru acumulare retroactivă (puncte pe lunile în care nu a intrat)
+    const acum = new Date();
+    // Dacă nu există o dată salvată, folosim data curentă ca referință
+    const ultimaActualizare = data.last_update ? new Date(data.last_update) : new Date();
 
-            renderUI(data);
+    // Calculăm diferența matematică de luni (Ani * 12 + Luni)
+    const luniDiferenta = (acum.getFullYear() - ultimaActualizare.getFullYear()) * 12 + (acum.getMonth() - ultimaActualizare.getMonth());
+
+    if (luniDiferenta > 0) {
+        const punctePerLuna = 10;
+        const puncteDeAdaugat = luniDiferenta * punctePerLuna;
+        const newPoints = data.points + puncteDeAdaugat;
+
+        // 3. Actualizăm baza de date cu noile puncte și data curentă (ISO string)
+        const { error: updateError } = await _supabase
+            .from('users_data')
+            .update({ 
+                points: newPoints, 
+                last_update: acum.toISOString() 
+            })
+            .eq('id', USER_ID);
+
+        if (!updateError) {
+            // Actualizăm și datele locale pentru a reflecta schimbarea în UI
+            data.points = newPoints;
+            alert(`✨ Surpriză! Ai primit ${puncteDeAdaugat} credite pentru ultimele ${luniDiferenta} luni.`);
         }
+    }
+
+    // 4. Randăm interfața cu datele proaspete
+    renderUI(data);
+}
+
 
         function renderUI(userData) {
             document.getElementById('balance').innerText = userData.points;
