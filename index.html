@@ -1,47 +1,279 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>Walkthrough Apartament Mobil</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
-    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
-  </head>
-  
-  <body style="margin: 0; overflow: hidden; background-color: #000;">
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magazinul de Răsfăț</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --pink-dark: #ad1457;
+            --pink-main: #ff4d6d;
+            --pink-light: #ffb3c1;
+            --bg: #fff0f3;
+        }
 
-    <a-scene 
-      renderer="antialias: true; colorManagement: true;"
-      xr-mode-ui="enabled: false"> <a-assets>
-        <a-asset-item id="model-demo" src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Sponza/glTF-Binary/Sponza.glb"></a-asset-item>
-      </a-assets>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: #444;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
 
-      <a-entity light="type: ambient; intensity: 1;"></a-entity>
-      <a-entity light="type: directional; intensity: 0.8;" position="1 4 3"></a-entity>
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
 
-      <a-entity 
-        gltf-model="#model-demo" 
-        position="0 0 0" 
-        scale="1 1 1">
-      </a-entity>
+        #points-card {
+            background: var(--pink-main);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            box-shadow: 0 10px 20px rgba(255, 77, 109, 0.3);
+            position: sticky;
+            top: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 3px solid white;
+        }
 
-      <a-entity id="rig" movement-controls="controls: nipple; speed: 0.2;" position="0 0 5">
-        <a-entity camera 
-                  look-controls="pointerLockEnabled: true" 
-                  position="0 1.6 0">
-        </a-entity>
-      </a-entity>
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 1000px;
+            width: 100%;
+            margin-top: 20px;
+        }
 
-      <a-sky color="#87CEEB"></a-sky>
+        .coupon {
+            background: white;
+            border: 3px dashed var(--pink-light);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
 
-    </a-scene>
+        .coupon:hover {
+            transform: translateY(-5px);
+            border-color: var(--pink-main);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.05);
+        }
 
-    <div style="position: fixed; bottom: 30px; width: 100%; text-align: center; color: white; font-family: sans-serif; pointer-events: none; text-shadow: 1px 1px 2px black;">
-      <b>CONTROL MOBIL:</b><br>
-      Atinge stânga ecranului pentru JOYSTICK (mișcare)<br>
-      Glisează în dreapta pentru a PRIVI
+        .price-badge {
+            background: var(--pink-light);
+            color: var(--pink-dark);
+            padding: 5px 15px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        h2 { margin: 10px 0; color: var(--pink-dark); }
+        p { font-size: 0.95rem; color: #666; line-height: 1.4; height: 40px; }
+
+        button {
+            background: var(--pink-main);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            transition: 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            background: var(--pink-dark);
+            letter-spacing: 1px;
+        }
+
+        button:disabled {
+            background: #d1d1d1;
+            cursor: not-allowed;
+        }
+
+        .history-section {
+            margin-top: 50px;
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+
+        .history-section h3 {
+            color: var(--pink-dark);
+            border-bottom: 2px solid var(--bg);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        #history-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        #history-list li {
+            padding: 10px;
+            border-bottom: 1px solid #fff0f3;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Efect de confetti la cumpărare */
+        .claimed {
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🎁 Magazinul tău de Răsfăț</h1>
+        <p>Aici poți schimba punctele tale lunare în experiențe!</p>
+    </header>
+
+    <div id="points-card">
+        <span>🪙</span>
+        <span id="balance">...</span>
+        <span style="font-size: 1rem;">puncte</span>
     </div>
 
-  </body>
+    <div class="container" id="shop">
+        <!-- Cupoanele vor fi generate aici -->
+    </div>
+
+    <div class="history-section">
+        <h3>📜 Istoric Achiziții</h3>
+        <ul id="history-list">
+            <li>Se încarcă istoricul...</li>
+        </ul>
+    </div>
+
+    <script>
+        // DATE CONECTARE SUPABASE
+        const SUPABASE_URL = 'https://fndjrfieitieqzafhyzz.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_bHDKjiKAVHqW199ICw7i2g_O3olYMAr';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const USER_ID = 'iubita-mea';
+
+        // LISTA DE CADOURI
+        const inventory = [
+            { id: 1, title: "Masaj Spate", price: 15, desc: "30 minute de relaxare completă sub mâinile mele." },
+            { id: 2, title: "Seară de Film", price: 5, desc: "Tu alegi filmul, eu pregătesc floricelele." },
+            { id: 3, title: "Mic Dejun la Pat", price: 10, desc: "Omletă, cafea și tot ce poftești, servit la pat." },
+            { id: 4, title: "O zi fără Vase", price: 10, desc: "Eu spăl tot ce se adună în chiuvetă azi." },
+            { id: 5, title: "Ieșire la Sushi", price: 30, desc: "Cina de sâmbătă e din partea mea la restaurantul X." },
+            { id: 6, title: "Dormit Până Târziu", price: 5, desc: "Liniște totală dimineața, indiferent de oră." }
+        ];
+
+        async function loadData() {
+            let { data, error } = await _supabase
+                .from('users_data')
+                .select('*')
+                .eq('id', USER_ID)
+                .single();
+
+            if (error) {
+                console.error("Eroare la încărcare:", error);
+                return;
+            }
+
+            // Verificare Puncte Lunare (+10 puncte la prima intrare din lună)
+            const now = new Date();
+            const currentMonth = `${now.getFullYear()}-${now.getMonth() + 1}`; // Corecție lună
+            
+            if (data.last_update !== currentMonth) {
+                const newPoints = data.points + 10;
+                await _supabase
+                    .from('users_data')
+                    .update({ points: newPoints, last_update: currentMonth })
+                    .eq('id', USER_ID);
+                
+                data.points = newPoints;
+            }
+
+            render(data.points, data.history);
+        }
+
+        function render(points, history) {
+            document.getElementById('balance').innerText = points;
+
+            const shop = document.getElementById('shop');
+            shop.innerHTML = inventory.map(item => `
+                <div class="coupon">
+                    <div class="price-badge">💰 Preț: ${item.price} Puncte</div>
+                    <h2>${item.title}</h2>
+                    <p>${item.desc}</p>
+                    <button 
+                        ${points < item.price ? 'disabled' : ''} 
+                        onclick="buy('${item.title}', ${item.price})">
+                        ${points < item.price ? 'Puncte Insuficiente' : 'Revendică Acum'}
+                    </button>
+                </div>
+            `).join('');
+
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = history.length > 0 
+                ? history.map(h => `<li><span>✅ ${h.split('(')[0]}</span> <small style="color:#999">${h.split('(')[1] || ''}</small></li>`).join('')
+                : '<li>Niciun cupon folosit încă.</li>';
+        }
+
+        async function buy(title, price) {
+            if (!confirm(`Ești sigură că vrei să cheltui ${price} puncte pentru "${title}"?`)) return;
+
+            // Luăm datele la secundă din DB
+            let { data } = await _supabase.from('users_data').select('*').eq('id', USER_ID).single();
+
+            if (data.points >= price) {
+                const newPoints = data.points - price;
+                const newHistory = [`${title} (${new Date().toLocaleDateString('ro-RO')})`, ...data.history];
+
+                const { error } = await _supabase
+                    .from('users_data')
+                    .update({ 
+                        points: newPoints, 
+                        history: newHistory.slice(0, 15) // Păstrăm ultimele 15 cumpărături
+                    })
+                    .eq('id', USER_ID);
+
+                if (!error) {
+                    alert("🥳 Felicitări! Ai revendicat: " + title);
+                    loadData(); // Reîncărcăm totul
+                }
+            } else {
+                alert("Ups! Nu ai destule puncte momentan.");
+            }
+        }
+
+        // Pornim aplicația
+        loadData();
+    </script>
+</body>
 </html>
