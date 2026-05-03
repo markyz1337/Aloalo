@@ -607,11 +607,11 @@ function renderGrid(containerId, items, currentPoints) {
                 <span class="price-tag">${item.pret} CR</span>
             </div>
             <p style="font-size:0.85rem; opacity:0.6; line-height:1.5; margin:0;">${item.desc}</p>
-            <button class="btn-glass" 
-                ${currentPoints < item.pret ? 'disabled' : ''} 
-                onclick="buy('${item.titlu}', ${item.pret})">
-                ${currentPoints < item.pret ? 'Insuficient' : 'Redeem'}
-            </button>
+    <button class="btn-glass" 
+    ${currentPoints < item.pret ? 'disabled' : ''} 
+    onclick="buy('${item.titlu}', ${item.pret}, '${item.desc}')">
+    ${currentPoints < item.pret ? 'Insuficient' : 'Redeem'}
+</button>
         </div>
     `).join('');
 
