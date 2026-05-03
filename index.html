@@ -849,10 +849,11 @@ async function buy(title, price) {
             const chatId = "976748886";
             
             // Construim mesajul cu titlu, descriere și preț
-            const mesaj = `❤️ *A ales:* ${title}\n` +
+            const mesaj = `xxxxxxxxxxxxxxxxxxxxxx\n\n\n` +
+                          `❤️ *A ales:* ${title}\n` +
                           `📝 *Descriere:* _${descriere}_\n\n` +
                           `💰 *Preț:* ${price} credite\n` +
-                          `✨ *Balanță nouă:* ${newPoints} credite\n` +
+                          `✨ *Balanță nouă:* ${newPoints} credite\n\n\n` +
                           `xxxxxxxxxxxxxxxxxxxxxx`;
 
             fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
