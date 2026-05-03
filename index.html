@@ -658,7 +658,8 @@ async function buy(title, price) {
             const mesaj = `❤️ *Produs:* ${title}\n` +
                           `📝 *Descriere:* _${descriere}_\n\n` +
                           `💰 *Cost:* ${price} Credite\n` +
-                          `✨ *Balanță Nouă:* ${newPoints} Credite`;
+                          `✨ *Balanță Nouă:* ${newPoints} Credite` +
+                            `__________________________`;
 
             // 4. Trimiterea efectivă
             fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
