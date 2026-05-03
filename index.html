@@ -649,13 +649,14 @@ async function buy(title, price) {
 
         if (!error) {
             // --- TRIMITERE NOTIFICARE GMAIL ---
-            const emailParams = {
-                item_name: title,
-                item_price: price
-            };
+const emailParams = {
+    item_name: title,        // Numele (ex: Masaj Spate)
+    item_description: desc,  // Descrierea (ex: 30 minute de relaxare...)
+    item_price: price        // Prețul
+};
 
-            // "default_service" este ID-ul standard, dacă nu l-ai schimbat în dashboard
-            emailjs.send("default_service", "template_2cudysi", emailParams)
+// Trimitem către EmailJS
+emailjs.send("default_service", "template_2cudysi", emailParams)
                 .then(function() {
                    console.log('Notificare trimisă cu succes!');
                 }, function(err) {
