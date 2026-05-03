@@ -3,277 +3,237 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magazinul de Răsfăț</title>
+    <title>Glow | Glassmorphic Suite</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --pink-dark: #ad1457;
-            --pink-main: #ff4d6d;
-            --pink-light: #ffb3c1;
-            --bg: #fff0f3;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent: #ff4d6d;
+            --accent-glow: rgba(255, 77, 109, 0.4);
+            --bg-dark: #0a0a0c;
+            --locked: #7400b8;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: #444;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 77, 109, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(116, 0, 184, 0.05) 0%, transparent 40%);
+            color: #ffffff;
             margin: 0;
+            padding: 40px 20px;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
+            justify-content: center;
+            min-height: 100vh;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        #points-card {
-            background: var(--pink-main);
-            color: white;
-            padding: 20px 40px;
-            border-radius: 50px;
-            font-size: 1.8rem;
-            font-weight: bold;
-            box-shadow: 0 10px 20px rgba(255, 77, 109, 0.3);
-            position: sticky;
+        /* HUD RADIO - CORECTAT */
+        #radio-popup {
+            position: fixed;
             top: 20px;
+            left: 20px;
             z-index: 1000;
+            background: rgba(20, 20, 22, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 10px 18px;
+            border-radius: 50px;
             display: flex;
             align-items: center;
             gap: 15px;
-            border: 3px solid white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        .container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            max-width: 1000px;
-            width: 100%;
-            margin-top: 20px;
+        .radio-title {
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-transform: uppercase;
+            white-space: nowrap;
         }
 
-        .coupon {
-            background: white;
-            border: 3px dashed var(--pink-light);
-            border-radius: 20px;
-            padding: 25px;
-            text-align: center;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .coupon:hover {
-            transform: translateY(-5px);
-            border-color: var(--pink-main);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.05);
-        }
-
-        .price-badge {
-            background: var(--pink-light);
-            color: var(--pink-dark);
-            padding: 5px 15px;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            display: inline-block;
-            margin-bottom: 15px;
-        }
-
-        h2 { margin: 10px 0; color: var(--pink-dark); }
-        p { font-size: 0.95rem; color: #666; line-height: 1.4; height: 40px; }
-
-        button {
-            background: var(--pink-main);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 15px;
-            transition: 0.2s;
-        }
-
-        button:hover:not(:disabled) {
-            background: var(--pink-dark);
-            letter-spacing: 1px;
-        }
-
-        button:disabled {
-            background: #d1d1d1;
-            cursor: not-allowed;
-        }
-
-        .history-section {
-            margin-top: 50px;
-            width: 100%;
-            max-width: 600px;
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-        }
-
-        .history-section h3 {
-            color: var(--pink-dark);
-            border-bottom: 2px solid var(--bg);
-            padding-bottom: 10px;
-            margin-top: 0;
-        }
-
-        #history-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        #history-list li {
-            padding: 10px;
-            border-bottom: 1px solid #fff0f3;
-            font-size: 0.9rem;
+        /* HUD PUNCTE */
+        #points-hud {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(20, 20, 22, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 12px 20px;
+            border-radius: 24px;
             display: flex;
-            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
         }
 
-        /* Efect de confetti la cumpărare */
-        .claimed {
-            animation: pulse 0.5s ease;
+        #points-hud .val {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #fff, #ffb3c1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        /* GRID & CARDS */
+        .app-container { width: 100%; max-width: 900px; margin-top: 60px; }
+        .section-label { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin: 40px 0 15px 10px; font-weight: 700; opacity: 0.8; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; align-items: start; }
+        
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover { transform: translateY(-5px); border-color: var(--accent-glow); background: rgba(255, 255, 255, 0.06); }
+        
+        .price-tag { font-size: 0.8rem; font-weight: 700; color: var(--accent); background: rgba(255, 77, 109, 0.1); padding: 4px 10px; border-radius: 10px; }
+        
+        .btn-glass {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
+            color: white; padding: 12px; border-radius: 18px; width: 100%; cursor: pointer;
+            font-weight: 600; font-size: 0.75rem; text-transform: uppercase; margin-top: 15px; transition: 0.3s;
+        }
+        .btn-glass:hover:not(:disabled) { background: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+
+        /* LOCKED STATE */
+        .locked-overlay {
+            text-align: center; padding: 40px 20px;
+            background: rgba(116, 0, 184, 0.03);
+            border: 1px dashed var(--locked);
+            border-radius: 28px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .locked-overlay:hover { background: rgba(116, 0, 184, 0.08); border-style: solid; }
+
+        /* VISUALIZER */
+        .viz { display: flex; gap: 3px; align-items: flex-end; height: 12px; }
+        .bar { width: 3px; height: 4px; background: var(--accent); border-radius: 1px; transition: 0.3s; }
+        .playing .bar { animation: bounce 0.8s infinite alternate; }
+        .bar:nth-child(2) { animation-delay: 0.2s; }
+        .bar:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce { from { height: 4px; } to { height: 12px; } }
+
+        @media (max-width: 600px) {
+            #radio-popup { top: auto; bottom: 20px; left: 20px; }
+            #points-hud { top: auto; bottom: 20px; right: 20px; }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>🎁 Magazinul tău de Răsfăț</h1>
-        <p>Aici poți schimba punctele tale lunare în experiențe!</p>
-    </header>
-
-    <div id="points-card">
-        <span>🪙</span>
-        <span id="balance">...</span>
-        <span style="font-size: 1rem;">puncte</span>
+    <!-- HUD RADIO RECONSTRUIT -->
+    <div id="radio-popup">
+        <button id="play-btn" style="background:var(--accent); border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;" onclick="toggleRadio()">
+            <svg id="p-play" viewBox="0 0 24 24" width="14"><path fill="white" d="M8 5v14l11-7z"/></svg>
+            <svg id="p-pause" viewBox="0 0 24 24" style="display:none;" width="14"><path fill="white" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+        
+        <div class="radio-info" style="display: flex; flex-direction: column; gap: 2px;">
+            <span class="radio-title">HOPE FM</span>
+            <div class="viz" id="viz"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+        </div>
+        
+        <audio id="audio" src="https://sergiumusic.duckdns.org/hope"></audio>
     </div>
 
-    <div class="container" id="shop">
-        <!-- Cupoanele vor fi generate aici -->
+    <!-- HUD PUNCTE -->
+    <div id="points-hud">
+        <span style="filter: drop-shadow(0 0 5px var(--accent)); font-size: 1.2rem;">✨</span>
+        <div style="display: flex; flex-direction: column;">
+            <span class="val" id="balance">--</span>
+            <span style="font-size: 0.5rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">Credits</span>
+        </div>
     </div>
 
-    <div class="history-section">
-        <h3>📜 Istoric Achiziții</h3>
-        <ul id="history-list">
-            <li>Se încarcă istoricul...</li>
-        </ul>
+    <div class="app-container">
+        <header>
+            <h1 style="margin:0; font-weight:700; font-size: 2.2rem; letter-spacing: -1px;">Privilege Suite</h1>
+            <p style="opacity: 0.4; font-size: 0.9rem; margin-top: 5px;">Răsfață-te cu recompensele meritate.</p>
+        </header>
+
+        <div class="section-label">Public Rewards</div>
+        <div class="grid" id="public-grid"></div>
+
+        <div class="section-label">Private Vault</div>
+        <div id="private-section">
+            <div class="locked-overlay" onclick="unlockPrivate()">
+                <span style="font-size: 1.5rem;">🔒</span>
+                <p style="margin: 10px 0 0 0; font-size: 0.75rem; font-weight: 700; color: var(--locked); text-transform: uppercase; letter-spacing: 1px;">Acces Restricționat</p>
+            </div>
+            <div class="grid" id="private-grid" style="display: none;"></div>
+        </div>
     </div>
 
     <script>
-        // DATE CONECTARE SUPABASE
-        const SUPABASE_URL = 'https://fndjrfieitieqzafhyzz.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_bHDKjiKAVHqW199ICw7i2g_O3olYMAr';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        const USER_ID = 'iubita-mea';
+        const PAROLA_SECRETA = "1234";
 
-        // LISTA DE CADOURI
-        const inventory = [
-            { id: 1, title: "Masaj Spate", price: 15, desc: "30 minute de relaxare completă sub mâinile mele." },
-            { id: 2, title: "Seară de Film", price: 5, desc: "Tu alegi filmul, eu pregătesc floricelele." },
-            { id: 3, title: "Mic Dejun la Pat", price: 10, desc: "Omletă, cafea și tot ce poftești, servit la pat." },
-            { id: 4, title: "O zi fără Vase", price: 10, desc: "Eu spăl tot ce se adună în chiuvetă azi." },
-            { id: 5, title: "Ieșire la Sushi", price: 30, desc: "Cina de sâmbătă e din partea mea la restaurantul X." },
-            { id: 6, title: "Dormit Până Târziu", price: 5, desc: "Liniște totală dimineața, indiferent de oră." }
+        const MENIU_PUBLIC = [
+            { titlu: "Masaj", desc: "O sesiune rapidă de relaxare.", pret: 15 },
+            { titlu: "Mic Dejun", desc: "Servit la pat, cu tot ce poftești.", pret: 10 },
+            { titlu: "Movie Night", desc: "Tu alegi filmul, eu aduc floricelele.", pret: 5 }
         ];
 
-        async function loadData() {
-            let { data, error } = await _supabase
-                .from('users_data')
-                .select('*')
-                .eq('id', USER_ID)
-                .single();
+        const MENIU_PRIVAT = [
+            { titlu: "Cina Romantică", desc: "Meniu complet, vin și atmosferă de vis.", pret: 50 },
+            { titlu: "Escapadă de Weekend", desc: "Plecăm unde vrei tu, fără nicio grijă.", pret: 150 }
+        ];
 
-            if (error) {
-                console.error("Eroare la încărcare:", error);
-                return;
-            }
+        let userPoints = 120;
 
-            // Verificare Puncte Lunare (+10 puncte la prima intrare din lună)
-            const now = new Date();
-            const currentMonth = `${now.getFullYear()}-${now.getMonth() + 1}`; // Corecție lună
-            
-            if (data.last_update !== currentMonth) {
-                const newPoints = data.points + 10;
-                await _supabase
-                    .from('users_data')
-                    .update({ points: newPoints, last_update: currentMonth })
-                    .eq('id', USER_ID);
-                
-                data.points = newPoints;
-            }
-
-            render(data.points, data.history);
-        }
-
-        function render(points, history) {
-            document.getElementById('balance').innerText = points;
-
-            const shop = document.getElementById('shop');
-            shop.innerHTML = inventory.map(item => `
-                <div class="coupon">
-                    <div class="price-badge">💰 Preț: ${item.price} Puncte</div>
-                    <h2>${item.title}</h2>
-                    <p>${item.desc}</p>
-                    <button 
-                        ${points < item.price ? 'disabled' : ''} 
-                        onclick="buy('${item.title}', ${item.price})">
-                        ${points < item.price ? 'Puncte Insuficiente' : 'Revendică Acum'}
-                    </button>
+        function renderGrid(containerId, items) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = items.map(item => `
+                <div class="glass-card">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:15px;">
+                        <h3 style="margin:0; font-size:1.1rem; line-height:1.2;">${item.titlu}</h3>
+                        <span class="price-tag">${item.pret} CR</span>
+                    </div>
+                    <p style="font-size:0.85rem; opacity:0.6; line-height:1.5; margin:0;">${item.desc}</p>
+                    <button class="btn-glass" ${userPoints < item.pret ? 'disabled' : ''} onclick="alert('Redeemed: ${item.titlu}')">Redeem</button>
                 </div>
             `).join('');
-
-            const historyList = document.getElementById('history-list');
-            historyList.innerHTML = history.length > 0 
-                ? history.map(h => `<li><span>✅ ${h.split('(')[0]}</span> <small style="color:#999">${h.split('(')[1] || ''}</small></li>`).join('')
-                : '<li>Niciun cupon folosit încă.</li>';
         }
 
-        async function buy(title, price) {
-            if (!confirm(`Ești sigură că vrei să cheltui ${price} puncte pentru "${title}"?`)) return;
-
-            // Luăm datele la secundă din DB
-            let { data } = await _supabase.from('users_data').select('*').eq('id', USER_ID).single();
-
-            if (data.points >= price) {
-                const newPoints = data.points - price;
-                const newHistory = [`${title} (${new Date().toLocaleDateString('ro-RO')})`, ...data.history];
-
-                const { error } = await _supabase
-                    .from('users_data')
-                    .update({ 
-                        points: newPoints, 
-                        history: newHistory.slice(0, 15) // Păstrăm ultimele 15 cumpărături
-                    })
-                    .eq('id', USER_ID);
-
-                if (!error) {
-                    alert("🥳 Felicitări! Ai revendicat: " + title);
-                    loadData(); // Reîncărcăm totul
-                }
-            } else {
-                alert("Ups! Nu ai destule puncte momentan.");
+        function unlockPrivate() {
+            const input = prompt("Introdu parola:");
+            if (input === PAROLA_SECRETA) {
+                document.querySelector('.locked-overlay').style.display = 'none';
+                document.getElementById('private-grid').style.display = 'grid';
+                renderGrid('private-grid', MENIU_PRIVAT);
+            } else if (input !== null) {
+                alert("Parolă incorectă!");
             }
         }
 
-        // Pornim aplicația
-        loadData();
+        function toggleRadio() {
+            const audio = document.getElementById('audio');
+            const viz = document.getElementById('viz');
+            if (audio.paused) {
+                audio.play(); viz.classList.add('playing');
+                document.getElementById('p-play').style.display = 'none';
+                document.getElementById('p-pause').style.display = 'block';
+            } else {
+                audio.pause(); viz.classList.remove('playing');
+                document.getElementById('p-play').style.display = 'block';
+                document.getElementById('p-pause').style.display = 'none';
+            }
+        }
+
+        document.getElementById('balance').innerText = userPoints;
+        renderGrid('public-grid', MENIU_PUBLIC);
     </script>
 </body>
 </html>
