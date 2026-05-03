@@ -151,22 +151,21 @@
 
 
 
-        /* HUD RADIO */
-        #radio-popup {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1000;
-            background: rgba(20, 20, 22, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            padding: 10px 18px;
-            border-radius: 50px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
+/* MODIFICĂ ACEST BLOC ÎN CSS */
+#radio-popup {
+    position: fixed;
+    top: 20px; /* Sau bottom: 20px conform media query-ului tău */
+    left: 20px;
+    z-index: 1000;
+    background: transparent !important; /* FORȚEAZĂ TRANSPARENȚA */
+    border: none !important;           /* SCOATE BORDURA */
+    padding: 0;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: none !important;      /* SCOATE UMBRA DREPTUNGHIULARĂ */
+}
+
 
         .radio-title {
             font-size: 0.7rem;
@@ -273,6 +272,53 @@
     }
 }
 
+
+/* Starea de bază: Alb când e oprit */
+#play-indicator {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.6s ease;
+}
+
+.radio-off {
+    background: rgba(255, 255, 255, 0.15); /* Alb translucid */
+    color: white;
+    box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+}
+
+/* Starea activă: Roz și Pâlpâit */
+.radio-on {
+    background: var(--accent) !important;
+    color: white;
+    animation: pulse-glow 1.5s infinite;
+}
+
+@keyframes pulse-glow {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 77, 109, 0.7);
+    }
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 12px rgba(255, 77, 109, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 77, 109, 0);
+    }
+}
+
+#radio-popup:active #play-indicator {
+    transform: scale(0.9);
+}
+
+
+
+
     </style>
 </head>
 <body>
@@ -308,34 +354,35 @@
 
 
 
-    <div id="radio-popup">
-        <button id="play-btn" style="background:var(--accent); border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;" onclick="toggleRadio()">
-            <svg id="p-play" viewBox="0 0 24 24" width="14"><path fill="white" d="M8 5v14l11-7z"/></svg>
-            <svg id="p-pause" viewBox="0 0 24 24" style="display:none;" width="14"><path fill="white" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-        </button>
-        <div class="radio-info">
-            <span class="radio-title">HOPE FM</span>
-            <div class="viz" id="viz"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
-        </div>
+<!-- RADIO BUTON SMART -->
+<div id="radio-popup" 
+     onclick="toggleRadio()" 
+     style="background: transparent !important; border: none !important; cursor: pointer; padding: 0; -webkit-tap-highlight-color: transparent;">
+    
+    <div id="play-indicator" class="radio-off">
+        <svg id="p-play" viewBox="0 0 24 24" width="20"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+        <svg id="p-pause" viewBox="0 0 24 24" style="display:none;" width="20"><path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+    </div>
+</div>
+
+
+
+
         <audio id="audio" src="https://sergiumusic.duckdns.org/hope"></audio>
     </div>
 
-<div id="points-hud">
-    <!-- Streak Section -->
-    <div id="streak-display" style="display: flex; align-items: center; gap: 5px; border-right: 1px solid var(--glass-border); padding-right: 12px; margin-right: 8px;">
-        <span style="font-size: 1.2rem;">🔥</span>
-        <div style="display: flex; flex-direction: column;">
-            <span class="val" id="streak-val">--</span>
-            <span style="font-size: 0.5rem; opacity: 0.5; text-transform: uppercase;">Days</span>
+<!-- HUD COMPACT (STREAK + CREDITS) -->
+<div id="points-hud" style="gap: 15px; padding: 8px 15px;">
+    <!-- Streak și Balanță grupate -->
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 4px;">
+            <span style="font-size: 1rem;">🔥</span>
+            <span class="val" id="streak-val" style="font-size: 1.1rem;">--</span>
         </div>
-    </div>
-
-    <!-- Credits Section -->
-    <div style="display: flex; align-items: center; gap: 8px;">
-        <span style="filter: drop-shadow(0 0 5px var(--accent)); font-size: 1.2rem;">✨</span>
-        <div style="display: flex; flex-direction: column;">
-            <span class="val" id="balance">--</span>
-            <span style="font-size: 0.5rem; opacity: 0.5; text-transform: uppercase;">Credits</span>
+        <div style="width: 1px; height: 15px; background: var(--glass-border);"></div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 1rem; filter: drop-shadow(0 0 3px var(--accent));">✨</span>
+            <span class="val" id="balance" style="font-size: 1.1rem;">--</span>
         </div>
     </div>
 </div>
@@ -403,7 +450,7 @@
 
     <script>
 // --- CONFIGURARE MOD FUNCTIONARE ---
-const USE_API = true; 
+const USE_API = false; 
 // ------------------------------------
 
 const SUPABASE_URL = 'https://fndjrfieitieqzafhyzz.supabase.co';
@@ -536,6 +583,28 @@ function preventScroll(e) {
     }, 10);
 }
 
+
+
+function toggleRadio() {
+    const audio = document.getElementById('audio');
+    const indicator = document.getElementById('play-indicator');
+    const playIcon = document.getElementById('p-play');
+    const pauseIcon = document.getElementById('p-pause');
+
+    if (audio.paused) {
+        audio.play();
+        indicator.classList.remove('radio-off');
+        indicator.classList.add('radio-on');
+        playIcon.style.display = 'none';
+        pauseIcon.style.display = 'block';
+    } else {
+        audio.pause();
+        indicator.classList.remove('radio-on');
+        indicator.classList.add('radio-off');
+        playIcon.style.display = 'block';
+        pauseIcon.style.display = 'none';
+    }
+}
 
 
 function autoCheck(input) {
@@ -965,20 +1034,6 @@ function closeSecretModal() {
 }
 
 
-
-        function toggleRadio() {
-            const audio = document.getElementById('audio');
-            const viz = document.getElementById('viz');
-            if (audio.paused) {
-                audio.play(); viz.classList.add('playing');
-                document.getElementById('p-play').style.display = 'none';
-                document.getElementById('p-pause').style.display = 'block';
-            } else {
-                audio.pause(); viz.classList.remove('playing');
-                document.getElementById('p-play').style.display = 'block';
-                document.getElementById('p-pause').style.display = 'none';
-            }
-        }
 
 
 
