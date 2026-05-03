@@ -635,67 +635,45 @@ async function buy(title, price) {
 
     if (!confirm(`Confirmi folosirea a ${price} credite pentru "${title}"?`)) return;
 
-    // Preluăm datele actuale din Supabase
-    let { data } = await _supabase.from('users_data').select('*').eq('id', USER_ID).single();
+    try {
+        let { data, error: fetchError } = await _supabase.from('users_data').select('*').eq('id', USER_ID).single();
 
-    if (data.points >= price) {
-        const newPoints = data.points - price;
-        const newHistory = [`${title} (${new Date().toLocaleDateString('ro-RO')})`, ...data.history];
-
-        // Actualizăm baza de date
-        const { error } = await _supabase
-            .from('users_data')
-            .update({ 
-                points: newPoints, 
-                history: newHistory.slice(0, 5) // Păstrăm ultimele 10 în istoric
-            })
-            .eq('id', USER_ID);
-
-        if (!error) {
-            // --- LOGICA PENTRU TELEGRAM ---
-            
-            // 1. Găsim obiectul întreg pentru a-i lua descrierea
-            const toateProdusele = [...MENIU_PUBLIC, ...MENIU_PRIVAT];
-            const produs = toateProdusele.find(p => p.titlu === title);
-            const descriere = produs ? produs.desc : "Fără descriere disponibilă";
-
-            // 2. Parametrii Telegram
-            const botToken = "8665700807:AAGUePmZoK7Oo83QdFPJWUmpv-EjOMG9A-A";
-            const chatId = "976748886";
-            
-            // 3. Construirea mesajului
-            const mesaj = `❤️ *Produs:* ${title}\n` +
-                          `📝 *Descriere:* _${descriere}_\n\n` +
-                          `💰 *Cost:* ${price} Credite\n` +
-                          `✨ *Balanță Nouă:* ${newPoints} Credite` +
-                            `__________________________`;
-
-            // 4. Trimiterea efectivă
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: mesaj,
-                    parse_mode: "Markdown"
-                })
-            })
-            .then(response => {
-                if (!response.ok) console.error("Eroare la trimiterea Telegram");
-            })
-            .catch(err => console.error("Eroare rețea Telegram:", err));
-
-            // --- SFÂRȘIT LOGICĂ TELEGRAM ---
-
-            alert("🎉 Felicitări! Ai deblocat: " + title);
-            loadData(); // Reîncărcăm interfața
-        } else {
-            alert("Eroare la actualizarea bazei de date.");
+        if (fetchError || !data) {
+            console.error("Eroare la preluarea datelor:", fetchError);
+            return;
         }
-    } else {
-        alert("Nu ai destule puncte!");
+
+        if (data.points >= price) {
+            const newPoints = data.points - price;
+            
+            // PROTECȚIE AICI: Dacă history este null, folosim un array gol
+            const currentHistory = Array.isArray(data.history) ? data.history : [];
+            const newHistory = [`${title} (${new Date().toLocaleDateString('ro-RO')})`, ...currentHistory];
+
+            const { error: updateError } = await _supabase
+                .from('users_data')
+                .update({ 
+                    points: newPoints, 
+                    history: newHistory.slice(0, 10) // Păstrăm ultimele 10
+                })
+                .eq('id', USER_ID);
+
+            if (!updateError) {
+                // ... restul codului pentru Telegram ...
+                alert("🎉 Felicitări! Ai deblocat: " + title);
+                loadData();
+            } else {
+                console.error("Eroare Supabase Update:", updateError);
+                alert("Eroare la salvare: " + updateError.message);
+            }
+        } else {
+            alert("Nu ai destule puncte!");
+        }
+    } catch (err) {
+        console.error("Eroare neașteptată:", err);
     }
 }
+
 
 
 
