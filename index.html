@@ -218,21 +218,58 @@
             }
         }
 
-        function renderGrid(containerId, items, points) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = items.map(item => `
-                <div class="glass-card">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:15px;">
-                        <h3 style="margin:0; font-size:1.1rem; line-height:1.2;">${item.titlu}</h3>
-                        <span class="price-tag">${item.pret} CR</span>
-                    </div>
-                    <p style="font-size:0.85rem; opacity:0.6; line-height:1.5; margin:0;">${item.desc}</p>
-                    <button class="btn-glass" ${points < item.pret ? 'disabled' : ''} onclick="alert('Redeemed: ${item.titlu}')">
-                        ${points < item.pret ? 'Insuficient' : 'Redeem'}
-                    </button>
-                </div>
-            `).join('');
+function renderGrid(containerId, items, points) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = items.map(item => `
+        <div class="glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:15px;">
+                <h3 style="margin:0; font-size:1.1rem; line-height:1.2;">${item.titlu}</h3>
+                <span class="price-tag">${item.pret} CR</span>
+            </div>
+            <p style="font-size:0.85rem; opacity:0.6; line-height:1.5; margin:0;">${item.desc}</p>
+            <button class="btn-glass" ${points < item.pret ? 'disabled' : ''} 
+                onclick="redeemItem('${item.titlu}', ${item.pret})">
+                ${points < item.pret ? 'Insuficient' : 'Redeem'}
+            </button>
+        </div>
+    `).join('');
+}
+
+
+async function redeemItem(titlu, cost) {
+    if (globalPoints < cost) {
+        alert("Nu ai suficiente puncte!");
+        return;
+    }
+
+    const confirmare = confirm(`Vrei să folosești ${cost} credite pentru "${titlu}"?`);
+    
+    if (confirmare) {
+        const nou Sold = globalPoints - cost;
+        
+        try {
+            const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            
+            // Actualizăm în baza de date
+            const { error } = await _supabase
+                .from('users_data')
+                .update({ points: nouSold })
+                .eq('id', 'iubita-mea');
+
+            if (error) throw error;
+
+            // Dacă baza de date s-a actualizat, updatăm și local
+            globalPoints = nouSold;
+            updateUI(globalPoints);
+            
+            alert(`Succes! Te poți bucura de: ${titlu}`);
+        } catch (e) {
+            console.error(e);
+            alert("Eroare la procesarea punctelor. Verifică conexiunea.");
         }
+    }
+}
+
 
         function unlockPrivate() {
             const input = prompt("Introdu parola:");
