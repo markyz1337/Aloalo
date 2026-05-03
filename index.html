@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Glow | Glassmorphic Suite</title>
+    <!-- Script Supabase adăugat -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -30,7 +31,7 @@
             min-height: 100vh;
         }
 
-        /* HUD RADIO - CORECTAT */
+        /* HUD RADIO */
         #radio-popup {
             position: fixed;
             top: 20px;
@@ -134,22 +135,18 @@
 </head>
 <body>
 
-    <!-- HUD RADIO RECONSTRUIT -->
     <div id="radio-popup">
         <button id="play-btn" style="background:var(--accent); border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;" onclick="toggleRadio()">
             <svg id="p-play" viewBox="0 0 24 24" width="14"><path fill="white" d="M8 5v14l11-7z"/></svg>
             <svg id="p-pause" viewBox="0 0 24 24" style="display:none;" width="14"><path fill="white" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
         </button>
-        
         <div class="radio-info" style="display: flex; flex-direction: column; gap: 2px;">
             <span class="radio-title">HOPE FM</span>
             <div class="viz" id="viz"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
         </div>
-        
         <audio id="audio" src="https://sergiumusic.duckdns.org/hope"></audio>
     </div>
 
-    <!-- HUD PUNCTE -->
     <div id="points-hud">
         <span style="filter: drop-shadow(0 0 5px var(--accent)); font-size: 1.2rem;">✨</span>
         <div style="display: flex; flex-direction: column;">
@@ -179,6 +176,10 @@
 
     <script>
         const PAROLA_SECRETA = "1234";
+        const SUPABASE_URL = 'https://fndjrfieitieqzafhyzz.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_bHDKjiKAVHqW199ICw7i2g_O3olYMAr';
+        
+        let globalPoints = 0; // Se va actualiza din Supabase
 
         const MENIU_PUBLIC = [
             { titlu: "Masaj", desc: "O sesiune rapidă de relaxare.", pret: 15 },
@@ -191,9 +192,33 @@
             { titlu: "Escapadă de Weekend", desc: "Plecăm unde vrei tu, fără nicio grijă.", pret: 150 }
         ];
 
-        let userPoints = 120;
+        // --- FUNCȚIA SUPABASE ---
+        async function loadData() {
+            try {
+                const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                let { data, error } = await _supabase.from('users_data').select('*').eq('id', 'iubita-mea').single();
+                
+                if (error || !data) throw new Error("Eroare Supabase");
+                
+                globalPoints = data.points;
+                updateUI(globalPoints);
+            } catch (e) {
+                console.warn("Folosim date simulate (eroare conexiune)");
+                globalPoints = 25; // Valoare fallback
+                updateUI(globalPoints);
+            }
+        }
 
-        function renderGrid(containerId, items) {
+        function updateUI(points) {
+            document.getElementById('balance').innerText = points;
+            renderGrid('public-grid', MENIU_PUBLIC, points);
+            // Dacă secțiunea privată e deja vizibilă, o re-randăm să updateze butoanele
+            if(document.getElementById('private-grid').style.display === 'grid') {
+                renderGrid('private-grid', MENIU_PRIVAT, points);
+            }
+        }
+
+        function renderGrid(containerId, items, points) {
             const container = document.getElementById(containerId);
             container.innerHTML = items.map(item => `
                 <div class="glass-card">
@@ -202,7 +227,9 @@
                         <span class="price-tag">${item.pret} CR</span>
                     </div>
                     <p style="font-size:0.85rem; opacity:0.6; line-height:1.5; margin:0;">${item.desc}</p>
-                    <button class="btn-glass" ${userPoints < item.pret ? 'disabled' : ''} onclick="alert('Redeemed: ${item.titlu}')">Redeem</button>
+                    <button class="btn-glass" ${points < item.pret ? 'disabled' : ''} onclick="alert('Redeemed: ${item.titlu}')">
+                        ${points < item.pret ? 'Insuficient' : 'Redeem'}
+                    </button>
                 </div>
             `).join('');
         }
@@ -212,7 +239,7 @@
             if (input === PAROLA_SECRETA) {
                 document.querySelector('.locked-overlay').style.display = 'none';
                 document.getElementById('private-grid').style.display = 'grid';
-                renderGrid('private-grid', MENIU_PRIVAT);
+                renderGrid('private-grid', MENIU_PRIVAT, globalPoints);
             } else if (input !== null) {
                 alert("Parolă incorectă!");
             }
@@ -232,8 +259,8 @@
             }
         }
 
-        document.getElementById('balance').innerText = userPoints;
-        renderGrid('public-grid', MENIU_PUBLIC);
+        // Inițializare
+        loadData();
     </script>
 </body>
 </html>
