@@ -311,7 +311,7 @@ if (USE_API) {
 }
 
 const USER_ID = 'iubita-mea';
-const PAROLA_SECRETA = "1234";
+const PAROLA_SECRETA = "69";
 
 const MOCK_DATA = {
     points: 100,
@@ -694,7 +694,7 @@ async function buy(title, price) {
 
 
 function unlockPrivate() {
-    const pw = prompt("Cifrul secret:");
+    const pw = prompt("Codul secret:");
     if (pw === PAROLA_SECRETA) {
         document.querySelector('.locked-overlay').style.display = 'none';
         document.getElementById('private-grid').style.display = 'grid';
