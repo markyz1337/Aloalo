@@ -730,11 +730,16 @@ async function loadData() {
                 })
                 .eq('id', USER_ID);
 
-            if (!updateError) {
-                data.points = newPoints;
-                // Notificare estetică pentru ea
-                alert(`✨ Bună, iubire! Ai primit ${puncteDeAdaugat} ${puncteDeAdaugat === 1 ? 'credit' : 'credite'} pentru ultimele ${zileDiferenta} ${zileDiferenta === 1 ? 'zi' : 'zile'}.`);
-            }
+if (!updateError) {
+    data.points = newPoints;
+    
+    // Logică pentru un sunet natural în limba română
+    const textCredite = puncteDeAdaugat === 1 ? "un credit" : `${puncteDeAdaugat} credite`;
+    const textZile = zileDiferenta === 1 ? "ultima zi" : `ultimele ${zileDiferenta} zile`;
+
+    alert(`✨ Bună, iubire! Ai primit ${textCredite} pentru ${textZile}.`);
+}
+
         }
     }
 
