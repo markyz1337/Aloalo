@@ -695,30 +695,35 @@ async function loadData() {
         }
         data = dbData;
 
-        // Logica pentru acumulare retroactivă (doar în mod API)
-        const acum = new Date();
-        const ultimaActualizare = data.last_update ? new Date(data.last_update) : new Date();
-        const luniDiferenta = (acum.getFullYear() - ultimaActualizare.getFullYear()) * 12 + (acum.getMonth() - ultimaActualizare.getMonth());
 
-        if (luniDiferenta > 0) {
-            const punctePerLuna = 10;
-            const puncteDeAdaugat = luniDiferenta * punctePerLuna;
-            const newPoints = data.points + puncteDeAdaugat;
+// --- LOGICA PENTRU ACUMULARE ZILNICĂ ---
+const acum = new Date();
+const ultimaActualizare = data.last_update ? new Date(data.last_update) : new Date();
 
-            const { error: updateError } = await _supabase
-                .from('users_data')
-                .update({ points: newPoints, last_update: acum.toISOString() })
-                .eq('id', USER_ID);
+// Calculăm diferența de timp în milisecunde și o transformăm în zile întregi
+const diferentaTimp = acum.getTime() - ultimaActualizare.getTime();
+const zileDiferenta = Math.floor(diferentaTimp / (1000 * 3600 * 24));
 
-            if (!updateError) {
-                data.points = newPoints;
-                alert(`✨ Surpriză! Ai primit ${puncteDeAdaugat} credite.`);
-            }
-        }
+if (zileDiferenta > 0) {
+    const punctePerZi = 1; // Un punct pe zi
+    const puncteDeAdaugat = zileDiferenta * punctePerZi;
+    const newPoints = data.points + puncteDeAdaugat;
+
+    // Actualizăm în Supabase (setăm și ora la "acum" pentru a reseta cronometrul)
+    const { error: updateError } = await _supabase
+        .from('users_data')
+        .update({ 
+            points: newPoints, 
+            last_update: acum.toISOString() 
+        })
+        .eq('id', USER_ID);
+
+    if (!updateError) {
+        data.points = newPoints;
+        alert(`✨ Bine ai revenit! Ai primit ${puncteDeAdaugat} ${puncteDeAdaugat === 1 ? 'credit' : 'credite'} pentru ultimele ${zileDiferenta} ${zileDiferenta === 1 ? 'zi' : 'zile'}.`);
     }
-
-    renderUI(data);
 }
+
 
 
 
