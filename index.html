@@ -658,44 +658,61 @@ async function buy(title, price) {
 
     if (!confirm(`Confirmi folosirea a ${price} credite pentru "${title}"?`)) return;
 
-    try {
-        let { data, error: fetchError } = await _supabase.from('users_data').select('*').eq('id', USER_ID).single();
+    // 1. Preluăm datele actuale din Supabase
+    let { data } = await _supabase.from('users_data').select('*').eq('id', USER_ID).single();
 
-        if (fetchError || !data) {
-            console.error("Eroare la preluarea datelor:", fetchError);
-            return;
-        }
+    if (data.points >= price) {
+        const newPoints = data.points - price;
+        const newHistory = [`${title} (${new Date().toLocaleDateString('ro-RO')})`, ...data.history];
 
-        if (data.points >= price) {
-            const newPoints = data.points - price;
+        // 2. Actualizăm baza de date
+        const { error } = await _supabase
+            .from('users_data')
+            .update({ 
+                points: newPoints, 
+                history: newHistory.slice(0, 5) 
+            })
+            .eq('id', USER_ID);
+
+        if (!error) {
+            // --- NOTIFICARE TELEGRAM ---
             
-            // PROTECȚIE AICI: Dacă history este null, folosim un array gol
-            const currentHistory = Array.isArray(data.history) ? data.history : [];
-            const newHistory = [`${title} (${new Date().toLocaleDateString('ro-RO')})`, ...currentHistory];
+            // Căutăm descrierea beneficiului în listele de obiecte
+            const toateBeneficiile = [...MENIU_PUBLIC, ...MENIU_PRIVAT];
+            const beneficiuGasit = toateBeneficiile.find(b => b.titlu === title);
+            const descriere = beneficiuGasit ? beneficiuGasit.desc : "Fără descriere";
 
-            const { error: updateError } = await _supabase
-                .from('users_data')
-                .update({ 
-                    points: newPoints, 
-                    history: newHistory.slice(0, 5) // Păstrăm ultimele 10
+            const botToken = "8665700807:AAGUePmZoK7Oo83QdFPJWUmpv-EjOMG9A-A";
+            const chatId = "976748886";
+            
+            // Construim mesajul cu titlu, descriere și preț
+            const mesaj = `❤️ *A ales:* ${title}\n` +
+                          `📝 *Descriere:* _${descriere}_\n\n` +
+                          `💰 *Preț:* ${price} credite\n` +
+                          `✨ *Balanță nouă:* ${newPoints} credite` +
+                        `__________________________`;
+
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: mesaj,
+                    parse_mode: "Markdown"
                 })
-                .eq('id', USER_ID);
+            })
+            .then(() => console.log("Notificare Telegram trimisă!"))
+            .catch(err => console.error("Eroare Telegram:", err));
+            // ---------------------------
 
-            if (!updateError) {
-                // ... restul codului pentru Telegram ...
-                alert("🎉 Felicitări! Ai deblocat: " + title);
-                loadData();
-            } else {
-                console.error("Eroare Supabase Update:", updateError);
-                alert("Eroare la salvare: " + updateError.message);
-            }
-        } else {
-            alert("Nu ai destule puncte!");
+            alert("🎉 Felicitări! Ai deblocat: " + title);
+            loadData();
         }
-    } catch (err) {
-        console.error("Eroare neașteptată:", err);
+    } else {
+        alert("Nu ai destule puncte!");
     }
 }
+
 
 
 
