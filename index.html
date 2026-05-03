@@ -214,6 +214,35 @@
 </head>
 <body>
 
+
+<!-- Modal Personalizat pentru Cod Secret -->
+<div id="custom-prompt" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(10px); z-index:9999; align-items:center; justify-content:center;">
+    <div class="glass-card" style="width:280px; text-align:center; border:1px solid var(--locked);">
+        <p style="margin-top:0; font-weight:700; color:var(--locked); letter-spacing: 1px;">INTRODU PIN-UL</p>
+        
+<input type="text" 
+       id="pw-input" 
+       inputmode="numeric" 
+       pattern="[0-9]*" 
+       maxlength="4"
+       oninput="autoCheck(this)"
+       autocomplete="off"
+       style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; padding:15px; border-radius:18px; text-align:center; font-size:2.5rem; margin-bottom:15px; outline:none; -webkit-text-security: disc; letter-spacing: 10px;" 
+       placeholder="••••">
+
+
+        <div style="display:flex; gap:10px;">
+            <button class="btn-glass" onclick="closeSecretModal()" style="margin:0; flex:1; background:transparent;">Anulează</button>
+            <button class="btn-glass" onclick="checkSecretCode()" style="margin:0; flex:1; background:var(--locked);">Acces</button>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
     <div id="radio-popup">
         <button id="play-btn" style="background:var(--accent); border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;" onclick="toggleRadio()">
             <svg id="p-play" viewBox="0 0 24 24" width="14"><path fill="white" d="M8 5v14l11-7z"/></svg>
@@ -403,7 +432,7 @@ const MENIU_PRIVAT = [
     // --- Hardcore & Explicit ---
     { id: 223, titlu: "Creampie Marathon", desc: "Te umplu și rămâi așa toată noaptea. Fără curățare, să mă simți în tine.", pret: 45 },
     { id: 224, titlu: "Double Penetration Fantasy", desc: "Folosim o jucărie și p*la mea în același timp, în ambele orificii.", pret: 55 },
-    { id: 225, titlu: "The Master’s Mark", desc: "Îți las semne (mușcături, palme) pe care să le porți cu mândrie sub haine a doua zi.", pret: 20 },
+    { id: 225, titlu: "The Master's Mark", desc: "Îți las semne (mușcături, palme) pe care să le porți cu mândrie sub haine a doua zi.", pret: 20 },
     { id: 226, titlu: "Dirty Face-Slapping", desc: "Mă pui să te plesnesc peste față cu p*la până când obrajii ți se înroșesc de plăcere.", pret: 20 },
 
     // --- Sclavie & Supunere (Ea e Stăpâna) ---
@@ -430,6 +459,76 @@ function preventScroll(e) {
     }, 10);
 }
 
+
+
+function autoCheck(input) {
+    // Luăm valoarea curentă a input-ului
+    const valoare = input.value;
+
+    // Verificăm dacă ce a scris până acum este parola corectă
+    // Folosim PAROLA_SECRETA (care este "69")
+    if (valoare === PAROLA_SECRETA) {
+        // Opțional: adăugăm un delay minuscul de 100ms pentru fluiditate vizuală
+        setTimeout(() => {
+            unlockSuccess(input);
+        }, 100);
+    } 
+    // Dacă vrei să se deblocheze doar când scrie 4 cifre (ex: 6900), 
+    // folosești: if (valoare === "6900")
+}
+
+function unlockSuccess(input) {
+    input.blur(); // Închide tastatura numerică imediat
+    document.getElementById('custom-prompt').style.display = 'none';
+    document.querySelector('.locked-overlay').style.display = 'none';
+    document.getElementById('private-grid').style.display = 'grid';
+    
+    // Sunet de succes sau feedback (opțional)
+    console.log("Acces permis!");
+    loadData(); 
+}
+
+function checkSecretCode() {
+    // Această funcție rămâne pentru butonul manual de "Acces"
+    const input = document.getElementById('pw-input');
+    if (input.value.startsWith(PAROLA_SECRETA)) {
+        unlockSuccess(input);
+    } else {
+        input.style.borderColor = "#ff4d6d";
+        setTimeout(() => {
+            input.style.borderColor = "var(--glass-border)";
+            input.value = '';
+            input.focus();
+        }, 500);
+    }
+}
+
+function autoCheck(input) {
+    const valoare = input.value;
+
+    // 1. Verificăm dacă parola este corectă (indiferent de lungime)
+    if (valoare === PAROLA_SECRETA) {
+        setTimeout(() => {
+            unlockSuccess(input);
+        }, 100);
+        return; // Oprim execuția aici dacă e corectă
+    }
+
+    // 2. Dacă a scris 4 caractere și NU s-a declanșat deblocarea de mai sus
+    if (valoare.length === 4) {
+        // Feedback vizual: înroșim bordura scurt
+        input.style.borderColor = "#ff4d6d";
+        input.style.color = "#ff4d6d";
+        
+        setTimeout(() => {
+            input.value = ''; // Resetăm textul
+            input.style.borderColor = "var(--glass-border)";
+            input.style.color = "white";
+            // Păstrăm focusul pentru a continua să scrie
+            input.focus();
+        }, 400); // Resetare după aproape jumătate de secundă
+    }
+}
 
 
 
@@ -721,17 +820,36 @@ async function buy(title, price) {
 
 
 function unlockPrivate() {
-    const pw = prompt("Codul secret:");
-    if (pw === PAROLA_SECRETA) {
-        document.querySelector('.locked-overlay').style.display = 'none';
-        document.getElementById('private-grid').style.display = 'grid';
-        
-        // Re-randăm toată interfața pentru a scoate blur-ul din istoric
-        loadData(); 
-    } else if (pw !== null) {
-        alert("Cod incorect.");
-    }
+    const modal = document.getElementById('custom-prompt');
+    const input = document.getElementById('pw-input');
+    
+    // Afișăm modalul
+    modal.style.display = 'flex';
+    
+    // Resetăm valoarea
+    input.value = ''; 
+    
+    // FOCUS INSTANT - Aceasta este linia critică
+    input.focus();
+    
+    // Hack suplimentar: scroll în vizualizare pentru a forța browserul să activeze câmpul
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Verificare automată la tasta Enter/Go
+    input.onkeydown = function(e) {
+        if (e.key === "Enter") {
+            checkSecretCode();
+        }
+    };
 }
+
+
+
+
+function closeSecretModal() {
+    document.getElementById('custom-prompt').style.display = 'none';
+}
+
 
 
         function toggleRadio() {
