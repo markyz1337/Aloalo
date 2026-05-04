@@ -671,18 +671,22 @@
 
 
 
-<div class="section-label">Public Rewards</div>
+<!-- SECȚIUNE RECOMPENSE - ÎNLOCUIEȘTE TOT CE AI TRIMIS CU ASTA -->
+<div id="public-label" class="section-label">Public Rewards</div>
 <div id="public-section">
     <div class="grid" id="public-grid"></div>
     <button id="btn-more-public" class="btn-glass" style="width: auto; margin: 20px auto; display: none;" onclick="toggleExpand('public')">Vezi tot</button>
 </div>
 
-<div class="section-label">Private Vault</div>
+<div id="private-label" class="section-label">Private Vault</div>
 <div id="private-section">
-    <div class="locked-overlay" onclick="unlockPrivate()">
+    <!-- Overlay-ul pentru lock -->
+    <div id="private-lock-overlay" class="locked-overlay" onclick="unlockPrivate()">
         <span style="font-size: 1.5rem;">🔒</span>
         <p style="margin: 10px 0 0 0; font-size: 0.75rem; font-weight: 700; color: var(--locked); text-transform: uppercase; letter-spacing: 1px;">Acces Restricționat</p>
     </div>
+    
+    <!-- Grid-ul privat care e ascuns la început -->
     <div class="grid" id="private-grid" style="display: none;"></div>
     <button id="btn-more-private" class="btn-glass" style="width: auto; margin: 20px auto; display: none;" onclick="toggleExpand('private')">Vezi tot</button>
 </div>
@@ -1267,70 +1271,79 @@ async function loadData() {
 
 
 function renderUI(userData) {
-    // 1. Actualizăm HUD-ul (Valorile de sus)
     const balanceElem = document.getElementById('balance');
     const streakElem = document.getElementById('streak-val');
-
     if (balanceElem) balanceElem.innerText = userData.points;
     if (streakElem) streakElem.innerText = userData.streak || 0;
 
-    // 2. Verificăm dacă Vault-ul privat este deblocat în acest moment
     const privateGrid = document.getElementById('private-grid');
     const isPrivateUnlocked = privateGrid && privateGrid.style.display === 'grid';
+    
+    const publicLabel = document.getElementById('public-label');
+    const privateLabel = document.getElementById('private-label');
+    const privateSection = document.getElementById('private-section');
 
-    // 3. Randăm Grila Publică
-    const sortedPublic = getSortedItems(MENIU_PUBLIC);
-    renderGrid('public-grid', sortedPublic, userData.points);
+    if (searchTerm.length > 0) {
+        // --- MODALITATE CĂUTARE (LISTA UNIFICATĂ) ---
+        publicLabel.innerText = "Rezultate Căutare";
+        privateLabel.style.display = "none";
+        privateSection.style.display = "none";
 
-    // 4. Randăm Grila Privată (doar dacă e deblocată de codul secret)
-    if (isPrivateUnlocked) {
-        const sortedPrivate = getSortedItems(MENIU_PRIVAT);
-        renderGrid('private-grid', sortedPrivate, userData.points);
+        // Combinăm listele (doar dacă Vault-ul e deblocat includem și privatele)
+        let combinedMenu = [...MENIU_PUBLIC];
+        if (isPrivateUnlocked) {
+            combinedMenu = [...combinedMenu, ...MENIU_PRIVAT];
+        }
+
+        const filteredItems = getSortedItems(combinedMenu).filter(item => 
+            item.titlu.toLowerCase().includes(searchTerm) || 
+            item.desc.toLowerCase().includes(searchTerm)
+        );
+
+        renderGrid('public-grid', filteredItems, userData.points);
+    } else {
+        // --- MODALITATE NORMALĂ (SECȚIUNI SEPARATE) ---
+        publicLabel.innerText = "Public Rewards";
+        privateLabel.style.display = "block";
+        privateSection.style.display = "block";
+
+        const sortedPublic = getSortedItems(MENIU_PUBLIC);
+        renderGrid('public-grid', sortedPublic, userData.points);
+
+        if (isPrivateUnlocked) {
+            const sortedPrivate = getSortedItems(MENIU_PRIVAT);
+            renderGrid('private-grid', sortedPrivate, userData.points);
+        }
     }
 
-    // 5. Randăm Istoricul Tranzacțiilor
+    // Randare Istoric (Rămâne neschimbată)
+    renderHistory(userData, isPrivateUnlocked);
+}
+
+// Am extras logica de istoric într-o funcție separată pentru curățenie
+function renderHistory(userData, isPrivateUnlocked) {
     const historyContainer = document.getElementById('history-list');
-    
     if (userData.history && userData.history.length > 0) {
         historyContainer.innerHTML = userData.history.map(h => {
-            // Extragem numele beneficiului (ex: din "Masaj (01.05.2026)")
             const parti = h.split('(');
             const numeReal = parti[0].trim();
             const dataTranzactie = parti[1] ? parti[1].replace(')', '') : '';
-            
-            // Identificăm dacă beneficiul este unul din categoria "Privat"
             const estePrivat = MENIU_PRIVAT.some(item => item.titlu === numeReal);
-            
-            // Dacă e privat și Vault-ul e blocat, aplicăm efectul de blur
             const trebuieProtejat = estePrivat && !isPrivateUnlocked;
 
-            const textDeAfisat = trebuieProtejat ? "Beneficiu Privat" : numeReal;
-            const extraStyle = trebuieProtejat ? 'style="filter: blur(5px); opacity: 0.7; user-select: none;"' : '';
-            const clasaCenzura = trebuieProtejat ? "text-locked" : "";
-
             return `
-                <div class="history-item" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 12px 15px; background: rgba(255,255,255,0.02); border-radius: 15px; border: 1px solid rgba(255,255,255,0.05);">
-                    <span class="${clasaCenzura}" ${extraStyle}>
-                        ✨ ${textDeAfisat}
+                <div class="history-item">
+                    <span class="${trebuieProtejat ? 'text-locked' : ''}" ${trebuieProtejat ? 'style="filter: blur(5px);"' : ''}>
+                        ✨ ${trebuieProtejat ? "Beneficiu Privat" : numeReal}
                     </span>
-                    <span style="opacity:0.4; font-size:0.7rem; font-weight: 600; white-space: nowrap; margin-left: 10px;">
-                        ${dataTranzactie}
-                    </span>
+                    <span style="opacity:0.4; font-size:0.7rem; font-weight: 600;">${dataTranzactie}</span>
                 </div>`;
         }).join('');
     } else {
-        historyContainer.innerHTML = `
-            <div style="padding: 20px; text-align: center;">
-                <p style="font-size: 0.8rem; opacity: 0.4; margin: 0;">Nicio achiziție înregistrată încă.</p>
-            </div>`;
-    }
-
-    // 6. Sincronizăm automat și popup-ul de streak dacă acesta este deja deschis
-    const streakModal = document.getElementById('streak-modal');
-    if (streakModal && streakModal.style.display === 'flex') {
-        updateStreakVisuals(userData.streak || 0);
+        historyContainer.innerHTML = `<p style="font-size: 0.8rem; opacity: 0.4; text-align: center; padding: 20px;">Nicio achiziție înregistrată încă.</p>`;
     }
 }
+
 
 
 
@@ -1340,12 +1353,12 @@ function renderGrid(containerId, items, currentPoints) {
     const container = document.getElementById(containerId);
     const sectionType = containerId.split('-')[0];
     
-    // Dacă se caută ceva, ignorăm limita de 3 și arătăm tot ce e relevant
-    const isExpanded = expanded[sectionType] || searchTerm.length > 0;
+    // În timpul căutării (searchTerm activ), isExpanded este mereu true
+    const isSearching = searchTerm.length > 0;
+    const isExpanded = expanded[sectionType] || isSearching;
     
     const itemsToShow = isExpanded ? items : items.slice(0, 2);
     
-    // Randăm cardurile
     container.innerHTML = itemsToShow.map(item => `
         <div class="glass-card">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:15px;">
@@ -1361,15 +1374,18 @@ function renderGrid(containerId, items, currentPoints) {
         </div>
     `).join('');
 
-    // Logică pentru butonul "Vezi tot / Vezi mai puțin"
     const btnMore = document.getElementById(`btn-more-${sectionType}`);
-    if (items.length > 2) {
-        btnMore.style.display = 'block';
-        btnMore.innerText = isExpanded ? "Arată mai puține" : `Vezi tot (+${items.length - 2})`;
-    } else {
-        btnMore.style.display = 'none';
+    if (btnMore) {
+        // Ascundem butonul "Vezi tot" dacă suntem în mod căutare
+        if (isSearching || items.length <= 2) {
+            btnMore.style.display = 'none';
+        } else {
+            btnMore.style.display = 'block';
+            btnMore.innerText = isExpanded ? "Arată mai puține" : `Vezi tot (+${items.length - 2})`;
+        }
     }
 }
+
 
 async function buy(title, price) {
     if (!USE_API) {
