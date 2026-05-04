@@ -1200,6 +1200,7 @@ async function loadData() {
         return;
     }
 
+    // 1. Preluăm datele utilizatorului
     let { data: dbData, error } = await _supabase
         .from('users_data')
         .select('*')
@@ -1210,37 +1211,46 @@ async function loadData() {
     data = dbData;
 
     const acum = new Date();
-    const dataAzi = new Date(acum.getFullYear(), acum.getMonth(), acum.getDate());
+    // Cream o dată "curată" (fără oră/minute) pentru ziua de azi
+    const dataAziSimpla = new Date(acum.getFullYear(), acum.getMonth(), acum.getDate());
 
     if (!data.last_update) {
+        // Cazul primei utilizări a aplicației
         showStreakAtStart = true;
+        const newPoints = (data.points || 0) + 1;
         await _supabase
             .from('users_data')
-            .update({ last_update: acum.toISOString(), streak: 1, points: data.points + 1 })
+            .update({ last_update: acum.toISOString(), streak: 1, points: newPoints })
             .eq('id', USER_ID);
-        data.points += 1;
+        data.points = newPoints;
         data.streak = 1;
     } else {
+        // Analizăm data ultimei actualizări
         const ultimaActualizare = new Date(data.last_update);
-        const dataUltima = new Date(ultimaActualizare.getFullYear(), ultimaActualizare.getMonth(), ultimaActualizare.getDate());
+        const dataUltimaSimpla = new Date(ultimaActualizare.getFullYear(), ultimaActualizare.getMonth(), ultimaActualizare.getDate());
         
-        const diferentaTimp = dataAzi.getTime() - dataUltima.getTime();
+        // Calculăm diferența de zile calendaristice
+        const diferentaTimp = dataAziSimpla.getTime() - dataUltimaSimpla.getTime();
         const zileDiferenta = Math.round(diferentaTimp / (1000 * 3600 * 24));
 
+        // Dacă a trecut cel puțin o zi calendaristică (e altă dată în calendar)
         if (zileDiferenta >= 1) {
             showStreakAtStart = true;
+            
+            // Dacă a trecut exact 1 zi, continuăm streak-ul. Dacă a trecut mai mult, se resetează la 1.
             let noulStreak = (zileDiferenta === 1) ? (data.streak || 0) + 1 : 1;
             let puncteDeAdaugat = 1; 
 
-            // Verificăm dacă noul streak are bonus
+            // Verificăm dacă noul streak coincide cu un prag de bonus
             const bonusGasit = STREAK_BONUSES.find(b => b.days === noulStreak);
             if (bonusGasit) {
                 puncteDeAdaugat += bonusGasit.reward;
-                rewardType = "bonus"; // Marcăm că avem un bonus special
+                rewardType = "bonus";
             }
 
             const newPoints = (data.points || 0) + puncteDeAdaugat;
             
+            // Actualizăm în baza de date
             await _supabase
                 .from('users_data')
                 .update({ 
@@ -1255,15 +1265,17 @@ async function loadData() {
         }
     }
 
+    // 2. Randăm interfața cu noile date
     renderUI(data);
 
+    // 3. Dacă s-a acordat credit nou, deschidem animația de streak
     if (showStreakAtStart) {
         setTimeout(() => {
-            // Trimitem tipul de recompensă către modal
             openStreakModal(true, rewardType); 
         }, 1000);
     }
 }
+
 
 
 
