@@ -531,11 +531,20 @@
         
         <!-- Partea Stângă: Informații și Mesaje -->
         <div class="streak-info-side">
-            <div class="streak-header-mini">
-                <span class="fire-icon" style="font-size: 1.5rem;">🔥</span>
-                <h2 id="streak-title-display">0 Zile</h2>
-                <p>Streak Activ</p>
-            </div>
+<div class="streak-header-mini" style="text-align: left;">
+    <!-- FOC ANIMAT ALINIAT NATURAL -->
+    <img src="https://github.com/markyz1337/only-me/raw/refs/heads/main/animated_emojis/A37.GIF" 
+         width="50" 
+         height="50" 
+         style="margin-bottom: 5px; filter: drop-shadow(0 0 10px rgba(255, 77, 109, 0.3));">
+    
+    <h2 id="streak-title-display" style="margin: 0; font-size: 2rem; font-weight: 900; line-height: 1.1;">0 Zile</h2>
+    <p style="margin: 2px 0 0 0; font-size: 0.65rem; letter-spacing: 2px; color: var(--accent); font-weight: 800; text-transform: uppercase;">
+        Streak Activ
+    </p>
+</div>
+
+
             
             <div class="next-reward-box">
                 <span class="label">Status Recompensă</span>
@@ -697,7 +706,7 @@ const PAROLA_SECRETA = "69";
 
 const MOCK_DATA = {
     points: 125,
-    streak: 6, // Aici pui numărul de zile pe care vrei să-l simulezi
+    streak: 7, // Aici pui numărul de zile pe care vrei să-l simulezi
     history: ["Masaj Spate (01.05.2026)", "Seară de Film (03.05.2026)"],
     last_update: new Date().toISOString()
 };
@@ -855,7 +864,7 @@ function openStreakModal(isDailyUpdate = false, rewardType = "daily") {
 
 
 function updateStreakVisuals(currentStreak) {
-    document.getElementById('streak-title-display').innerText = `${currentStreak} Zile`;
+    document.getElementById('streak-title-display').innerText = `${currentStreak} Days`;
 
     const milestones = [7, 30, 90, 180, 365];
     let totalPercent = 0;
@@ -904,28 +913,52 @@ function updateStreakVisuals(currentStreak) {
 
     const hint = document.getElementById('next-goal-hint');
     
-    // Configurare mesaje pentru pragurile viitoare
+    // Configurare mesaje pentru pragurile viitoare (Text curățat și iconițe)
     const futureRewards = {
-        7:   "Pregătește-te! La pragul de **7 zile** vei debloca un bonus de bun venit de **+3 Credite**.",
-        30:  "Ești aproape de o lună! La **30 de zile** primești un Super Bonus de **+10 Credite**.",
-        90:  "Rezistență de diamant! La **90 de zile** te așteaptă un premiu de **+15 Credite**.",
-        180: "Jumătate de an de magie! La **180 de zile** primești un Grant Regal de **+25 Credite**.",
-        365: "Legenda vie! La **un an complet** vei primi potul cel mare: **+50 Credite**."
+        7:   "La pragul de <b>7 zile</b> primești un bonus de <b>+3 Credite</b>.",
+        30:  "La <b>30 de zile</b> deblocăm un Super Bonus de <b>+10 Credite</b>.",
+        90:  "La <b>90 de zile</b> primești un cadou special de <b>+15 Credite</b>.",
+        180: "La <b>180 de zile</b> primești un Grant Regal de <b>+25 Credite</b>.",
+        365: "La <b>un an complet</b> primești potul cel mare de <b>+50 Credite</b>."
     };
 
     if (currentStreak >= 365) {
-        hint.innerHTML = `<span style="color: #ff4d6d;">🏆 NIVEL MAXIM ATINS!</span><br>Ai demonstrat o iubire infinită. Orice zi de acum este o celebrare! ✨`;
+        hint.innerHTML = `
+            <div style="text-align: center; padding: 10px;">
+                <span style="color: #ff4d6d; font-weight: 800; font-size: 0.9rem;">🏆 NIVEL MAXIM ATINS</span>
+                <p style="margin: 5px 0 0; font-size: 0.75rem; opacity: 0.7;">Ai demonstrat o iubire infinită. ✨</p>
+            </div>`;
     } else {
         // Luăm mesajul corespunzător următorului prag găsit (nextGoal)
         const nextMessage = futureRewards[nextGoal] || "Fiecare zi cu tine e un câștig! ✨";
+        const zileRamase = nextGoal - currentStreak;
         
         hint.innerHTML = `
-            <div style="margin-bottom: 8px;">${nextMessage}</div>
-            <div style="background: rgba(0, 212, 255, 0.1); padding: 8px; border-radius: 12px; border: 1px dashed rgba(0, 212, 255, 0.3);">
-                <span style="font-size:0.75rem;">⏳ Progres: Mai ai <b>${nextGoal - currentStreak} zile</b> până la acest premiu.</span>
+            <div style="display: flex; flex-direction: column; gap: 12px; text-align: left;">
+                <!-- Mesaj Recompensă -->
+                <div style="font-size: 0.8rem; color: rgba(255,255,255,0.9); line-height: 1.4; padding-left: 10px; border-left: 2px solid #00d4ff;">
+                    ${nextMessage}
+                </div>
+                
+                <!-- Badge Progres -->
+                <div style="background: rgba(0, 212, 255, 0.08); 
+                            padding: 10px 12px; 
+                            border-radius: 14px; 
+                            border: 1px solid rgba(0, 212, 255, 0.2);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                            margin-top: 5px;">
+                    <span style="font-size: 1rem;">⏳</span>
+                    <span style="font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: #00d4ff;">
+                        Mai ai <span style="font-size: 0.7rem; color: #fff;">${zileRamase} ${zileRamase === 1 ? 'zi' : 'zile'}</span> până la premiu
+                    </span>
+                </div>
             </div>
         `;
     }
+
 
 
 }
