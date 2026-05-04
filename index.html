@@ -64,25 +64,6 @@
 
 
 
-
-
-
-
-
-#pw-input {
-    background: rgba(0, 0, 0, 0.2) !important;
-    border: 1px solid rgba(116, 0, 184, 0.3) !important;
-    color: #fff !important;
-    box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
-    transition: all 0.3s ease;
-    margin-top: 20px !important;
-}
-
-#pw-input:focus {
-    border-color: var(--locked) !important;
-    box-shadow: 0 0 15px rgba(116, 0, 184, 0.4), inset 0 2px 10px rgba(0,0,0,0.3);
-}
-
 .pin-label {
     font-size: 0.65rem;
     text-transform: uppercase;
@@ -121,12 +102,8 @@
     50% { transform: translateY(-10px) rotate(1deg); }
 }
 
-/* Ajustare pentru ecrane mici */
-@media (max-width: 480px) {
-    .hope-title {
-        font-size: 4.1rem;
-    }
-}
+
+
 
 
 .search-container {
@@ -251,11 +228,6 @@
             cursor: pointer;
             transition: 0.3s;
         }
-
-        .viz { display: flex; gap: 3px; align-items: flex-end; height: 12px; }
-        .bar { width: 3px; height: 4px; background: var(--accent); border-radius: 1px; }
-        .playing .bar { animation: bounce 0.8s infinite alternate; }
-        @keyframes bounce { from { height: 4px; } to { height: 12px; } }
 
 @media (max-width: 600px) {
     #radio-popup { 
@@ -792,7 +764,7 @@ const MENIU_PUBLIC = [
     { id: 33, titlu: "Degustare de Vin", desc: "O vizită la o cramă sau un wine bar.", pret: 35 },
     { id: 34, titlu: "Bilet la Concert", desc: "Mergem la trupa ta preferată.", pret: 20 },
     { id: 35, titlu: "Dansăm împreună", desc: "Ceva ușurel, singuri și cu iubire.", pret: 7 },
-    { id: 36, metallic: "Plimbare cu Barca", desc: "O oră de liniște pe lac.", pret: 8 },
+    { id: 36, titlu: "Plimbare cu Barca", desc: "O oră de liniște pe lac.", pret: 8 },
     { id: 37, titlu: "O zi la apartament cu jacuzzi.", desc: "Relaxare totală în piscină termală.", pret: 50 },
     { id: 38, titlu: "Shopping Spree", desc: "Alegi un obiect vestimentar, eu îl achit. (60€)", pret: 30 },
     { id: 39, titlu: "Cină la restaurant", desc: "O ieșire clasică la restaurantul preferat.", pret: 25 },
@@ -1296,10 +1268,6 @@ async function loadData() {
 
 
 
-
-
-
-
 function renderUI(userData) {
     // 1. Actualizăm HUD-ul (Valorile de sus)
     const balanceElem = document.getElementById('balance');
@@ -1473,44 +1441,14 @@ async function buy(title, price) {
 
 
 
-
-
-
-function unlockPrivate() {
-    const modal = document.getElementById('custom-prompt');
-    const input = document.getElementById('pw-input');
-    
-    modal.style.display = 'block'; // Schimbat din flex în block
-    input.value = ''; 
-
-    setTimeout(() => {
-        input.focus();
-    }, 100);
-}
-
-
-
-
-
-
-
-
-
-
 function closeSecretModal() {
     document.getElementById('custom-prompt').style.display = 'none';
 }
 
 
-
-
-
-
-
         loadData();
         
-        
-        
+       
         
     </script>
 </body>
