@@ -492,6 +492,32 @@
 
 
 
+.key-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 15px;
+    border-radius: 15px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.05s linear; /* Tranzitie ultra-rapidă */
+    -webkit-tap-highlight-color: transparent;
+    
+    /* ACEASTA ESTE LINIA CHEIE */
+    touch-action: manipulation; 
+    user-select: none;
+}
+
+.key-btn:active {
+    background: var(--locked);
+    transform: scale(0.9); /* Feedback vizual instant */
+}
+
+
+#pw-display span.filled {
+    -webkit-text-security: disc; /* Transformă cifrele în puncte */
+}
 
 
 
@@ -503,26 +529,39 @@
 
 
 <div id="custom-prompt">
-    <div class="glass-card modal-content">
+    <div class="glass-card modal-content" style="width: 300px; padding: 25px;">
         <span class="pin-label">Vault Security</span>
-        <h2 style="margin: 0; font-size: 1.2rem; font-weight: 600; color: #fff;">Introdu codul</h2>
+        <h2 style="margin: 0; font-size: 1.1rem; font-weight: 600; color: #fff;">Introdu codul</h2>
         
-        <input type="text" 
-               id="pw-input" 
-               inputmode="numeric" 
-               pattern="[0-9]*" 
-               maxlength="4"
-               oninput="autoCheck(this)"
-               autocomplete="off"
-               style="width:100%; padding:15px; border-radius:20px; text-align:center; font-size:2rem; outline:none; -webkit-text-security: disc; letter-spacing: 12px; box-sizing: border-box; background: rgba(0,0,0,0.2); border: 1px solid var(--locked); color: white; margin-top: 20px;" 
-               placeholder="••••">
-
-        <div style="display:flex; gap:12px; margin-top: 25px;">
-            <button class="btn-glass" onclick="closeSecretModal()" style="margin:0; flex:1; background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.05);">Anulează</button>
-            <button class="btn-glass" onclick="checkSecretCode()" style="margin:0; flex:1; background: var(--locked); border: none;">Acces</button>
+        <!-- Display pentru cod (fără tastatură) -->
+        <div id="pw-display" style="width:100%; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 2rem; letter-spacing: 15px; color: white; background: rgba(0,0,0,0.3); border: 1px solid var(--locked); border-radius: 20px; margin: 20px 0;">
+            <span style="opacity: 0.3;">••••</span>
         </div>
+
+<div class="keypad-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+    <button class="key-btn" onpointerdown="pressKey('1', event)">1</button>
+    <button class="key-btn" onpointerdown="pressKey('2', event)">2</button>
+    <button class="key-btn" onpointerdown="pressKey('3', event)">3</button>
+    
+    <button class="key-btn" onpointerdown="pressKey('4', event)">4</button>
+    <button class="key-btn" onpointerdown="pressKey('5', event)">5</button>
+    <button class="key-btn" onpointerdown="pressKey('6', event)">6</button>
+    
+    <button class="key-btn" onpointerdown="pressKey('7', event)">7</button>
+    <button class="key-btn" onpointerdown="pressKey('8', event)">8</button>
+    <button class="key-btn" onpointerdown="pressKey('9', event)">9</button>
+    
+    <button class="key-btn" onpointerdown="clearKey(event)" style="color: var(--accent);">C</button>
+    <button class="key-btn" onpointerdown="pressKey('0', event)">0</button>
+    <button class="key-btn" onpointerdown="backspaceKey(event)">⌫</button>
+</div>
+
+
+
+        <button class="btn-glass" onclick="closeSecretModal()" style="margin:0; width: 100%; background: rgba(255,255,255,0.03);">Anulează</button>
     </div>
 </div>
+
 
 
 
@@ -1019,79 +1058,73 @@ function toggleRadio() {
 }
 
 
-function autoCheck(input) {
-    // Luăm valoarea curentă a input-ului
-    const valoare = input.value;
 
-    // Verificăm dacă ce a scris până acum este parola corectă
-    // Folosim PAROLA_SECRETA (care este "69")
-    if (valoare === PAROLA_SECRETA) {
-        // Opțional: adăugăm un delay minuscul de 100ms pentru fluiditate vizuală
-        setTimeout(() => {
-            unlockSuccess(input);
-        }, 100);
-    } 
-    // Dacă vrei să se deblocheze doar când scrie 4 cifre (ex: 6900), 
-    // folosești: if (valoare === "6900")
+
+
+let currentPin = "";
+
+function unlockPrivate() {
+    currentPin = ""; // Resetăm PIN-ul
+    updatePinDisplay();
+    document.getElementById('custom-prompt').style.display = 'block';
 }
 
-function unlockSuccess(input) {
-    input.blur(); 
-    document.getElementById('custom-prompt').style.display = 'none';
+function pressKey(num, e) {
+    if (e) e.preventDefault(); // Oprește orice lag de sistem
     
-    // Forțăm ascunderea overlay-ului și afișarea grilei
+    if (currentPin.length < 4) {
+        currentPin += num;
+        updatePinDisplay();
+        
+        if (currentPin === PAROLA_SECRETA) {
+            setTimeout(unlockSuccess, 100);
+        } else if (currentPin.length === 4) {
+            const display = document.getElementById('pw-display');
+            display.style.borderColor = "#ff4d6d";
+            setTimeout(() => {
+                currentPin = "";
+                updatePinDisplay();
+                display.style.borderColor = "var(--locked)";
+            }, 400);
+        }
+    }
+}
+
+function clearKey(e) {
+    if (e) e.preventDefault();
+    currentPin = "";
+    updatePinDisplay();
+}
+
+function backspaceKey(e) {
+    if (e) e.preventDefault();
+    currentPin = currentPin.slice(0, -1);
+    updatePinDisplay();
+}
+
+
+function updatePinDisplay() {
+    const display = document.getElementById('pw-display');
+    if (currentPin.length === 0) {
+        display.innerHTML = '<span style="opacity: 0.3;">••••</span>';
+    } else {
+        // Generăm puncte pentru fiecare cifră introdusă
+        display.innerHTML = '<span class="filled">' + "•".repeat(currentPin.length) + '</span>';
+    }
+}
+
+function unlockSuccess() {
+    document.getElementById('custom-prompt').style.display = 'none';
     const overlay = document.querySelector('.locked-overlay');
     const privateGrid = document.getElementById('private-grid');
     
     if(overlay) overlay.style.display = 'none';
     if(privateGrid) {
         privateGrid.style.display = 'grid';
-        loadData(); // Re-randăm pentru a popula grila privată
+        loadData();
     }
 }
 
-
-function checkSecretCode() {
-    // Această funcție rămâne pentru butonul manual de "Acces"
-    const input = document.getElementById('pw-input');
-    if (input.value.startsWith(PAROLA_SECRETA)) {
-        unlockSuccess(input);
-    } else {
-        input.style.borderColor = "#ff4d6d";
-        setTimeout(() => {
-            input.style.borderColor = "var(--glass-border)";
-            input.value = '';
-            input.focus();
-        }, 500);
-    }
-}
-
-function autoCheck(input) {
-    const valoare = input.value;
-
-    // 1. Verificăm dacă parola este corectă (indiferent de lungime)
-    if (valoare === PAROLA_SECRETA) {
-        setTimeout(() => {
-            unlockSuccess(input);
-        }, 100);
-        return; // Oprim execuția aici dacă e corectă
-    }
-
-    // 2. Dacă a scris 4 caractere și NU s-a declanșat deblocarea de mai sus
-    if (valoare.length === 4) {
-        // Feedback vizual: înroșim bordura scurt
-        input.style.borderColor = "#ff4d6d";
-        input.style.color = "#ff4d6d";
-        
-        setTimeout(() => {
-            input.value = ''; // Resetăm textul
-            input.style.borderColor = "var(--glass-border)";
-            input.style.color = "white";
-            // Păstrăm focusul pentru a continua să scrie
-            input.focus();
-        }, 400); // Resetare după aproape jumătate de secundă
-    }
-}
 
 
 
