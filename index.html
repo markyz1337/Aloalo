@@ -815,7 +815,7 @@ function preventScroll(e) {
 
 
 
-function openStreakModal(isDailyUpdate = false) {
+function openStreakModal(isDailyUpdate = false, rewardType = "daily") {
     const modal = document.getElementById('streak-modal');
     if (modal) {
         let currentStreak = 0;
@@ -829,11 +829,18 @@ function openStreakModal(isDailyUpdate = false) {
         
         updateStreakVisuals(currentStreak);
         
-        // Dacă e deschis automat la logare, modificăm subtitlul
         const subtitle = modal.querySelector('.streak-header-mini p');
+        
         if (isDailyUpdate) {
-            subtitle.innerHTML = 'Bundă dimineața! <span style="color: #00d4ff;">+1 Credit Zilnic</span>';
-            subtitle.style.fontWeight = "bold";
+            if (rewardType === "bonus") {
+                // Mesaj special pentru pragurile 7, 30, 90, etc.
+                const bonusValue = STREAK_BONUSES.find(b => b.days === currentStreak)?.reward || 0;
+                subtitle.innerHTML = `🌟 PRAG ATINS! <span style="color: #ff4d6d;">+${bonusValue + 1} Credite</span> (Daily + Bonus)`;
+            } else {
+                // Mesaj standard
+                subtitle.innerHTML = 'Bună dimineața! <span style="color: #00d4ff;">+1 Credit Zilnic</span>';
+            }
+            subtitle.style.fontWeight = "800";
         } else {
             subtitle.innerText = 'Streak Activ';
             subtitle.style.fontWeight = "normal";
@@ -842,6 +849,7 @@ function openStreakModal(isDailyUpdate = false) {
         modal.style.display = 'flex';
     }
 }
+
 
 
 
@@ -1135,18 +1143,15 @@ const STREAK_BONUSES = [
 
 async function loadData() {
     let data;
-    let showStreakAtStart = false; // Variabilă pentru a știi dacă deschidem modalul
+    let showStreakAtStart = false;
+    let rewardType = "daily"; // Poate fi "daily" sau "bonus"
 
-    // MOD SIMULARE (Offline)
     if (!USE_API) {
         data = MOCK_DATA;
         renderUI(data);
-        // Opțional: scoate comentariul de mai jos dacă vrei să se deschidă și în modul test/offline
-        // openStreakModal(true); 
         return;
     }
 
-    // MOD REAL (Supabase)
     let { data: dbData, error } = await _supabase
         .from('users_data')
         .select('*')
@@ -1160,7 +1165,6 @@ async function loadData() {
     const dataAzi = new Date(acum.getFullYear(), acum.getMonth(), acum.getDate());
 
     if (!data.last_update) {
-        // Prima inițializare
         showStreakAtStart = true;
         await _supabase
             .from('users_data')
@@ -1176,19 +1180,15 @@ async function loadData() {
         const zileDiferenta = Math.round(diferentaTimp / (1000 * 3600 * 24));
 
         if (zileDiferenta >= 1) {
-            showStreakAtStart = true; // S-a schimbat ziua, deci arătăm streak-ul
-            let noulStreak = data.streak || 0;
+            showStreakAtStart = true;
+            let noulStreak = (zileDiferenta === 1) ? (data.streak || 0) + 1 : 1;
             let puncteDeAdaugat = 1; 
 
-            if (zileDiferenta === 1) {
-                noulStreak += 1;
-            } else {
-                noulStreak = 1;
-            }
-
+            // Verificăm dacă noul streak are bonus
             const bonusGasit = STREAK_BONUSES.find(b => b.days === noulStreak);
             if (bonusGasit) {
                 puncteDeAdaugat += bonusGasit.reward;
+                rewardType = "bonus"; // Marcăm că avem un bonus special
             }
 
             const newPoints = (data.points || 0) + puncteDeAdaugat;
@@ -1209,13 +1209,14 @@ async function loadData() {
 
     renderUI(data);
 
-    // Deschidem automat modalul dacă e prima intrare pe azi
     if (showStreakAtStart) {
         setTimeout(() => {
-            openStreakModal(true); 
-        }, 1000); // Mică întârziere pentru impact vizual
+            // Trimitem tipul de recompensă către modal
+            openStreakModal(true, rewardType); 
+        }, 1000);
     }
 }
+
 
 
 
