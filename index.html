@@ -903,22 +903,29 @@ function updateStreakVisuals(currentStreak) {
 
     const hint = document.getElementById('next-goal-hint');
     
-    // Configurare mesaje personalizate pentru fiecare prag
-    const rewardsMessages = {
-        7:   "Ești la începutul unei povești superbe! 🌸 <br><b>Bonus: +3 Credite</b> de bun venit.",
-        30:  "O lună întreagă de strălucire! ✨ <br><b>Bonus: +10 Credite.</b><br> Te ador din ce în ce mai mult!",
-        90:  "Trei luni de perfecțiune! 🏆 <br><b>Bonus: +15 Credite.</b> Ești oficial dependența mea preferată.",
-        180: "Jumătate de an împreună aici! 👑 <br><b>Bonus: +25 Credite.</b> Meriți tot răsfățul din lume.",
-        365: "Un an de magie pură! 💎 <br><b>Bonus: +50 Credite.</b> Ești regina regatului meu."
+    // Configurare mesaje pentru pragurile viitoare
+    const futureRewards = {
+        7:   "Pregătește-te! La pragul de **7 zile** vei debloca un bonus de bun venit de **+3 Credite**.",
+        30:  "Ești aproape de o lună! La **30 de zile** primești un Super Bonus de **+10 Credite**.",
+        90:  "Rezistență de diamant! La **90 de zile** te așteaptă un premiu de **+15 Credite**.",
+        180: "Jumătate de an de magie! La **180 de zile** primești un Grant Regal de **+25 Credite**.",
+        365: "Legenda vie! La **un an complet** vei primi potul cel mare: **+50 Credite**."
     };
 
     if (currentStreak >= 365) {
-        hint.innerHTML = `<b>${rewardsMessages[365]}</b>`;
+        hint.innerHTML = `<span style="color: #ff4d6d;">🏆 NIVEL MAXIM ATINS!</span><br>Ai demonstrat o iubire infinită. Orice zi de acum este o celebrare! ✨`;
     } else {
-        // Găsim ce mesaj să afișăm în funcție de următorul prag
-        const message = rewardsMessages[nextGoal] || "Fiecare zi cu tine e un câștig! ✨";
-        hint.innerHTML = `${message}<br><br><span style="font-size:0.75rem; opacity:0.8;">Mai ai <b>${nextGoal - currentStreak} zile</b> până la următorul prag.</span>`;
+        // Luăm mesajul corespunzător următorului prag găsit (nextGoal)
+        const nextMessage = futureRewards[nextGoal] || "Fiecare zi cu tine e un câștig! ✨";
+        
+        hint.innerHTML = `
+            <div style="margin-bottom: 8px;">${nextMessage}</div>
+            <div style="background: rgba(0, 212, 255, 0.1); padding: 8px; border-radius: 12px; border: 1px dashed rgba(0, 212, 255, 0.3);">
+                <span style="font-size:0.75rem;">⏳ Progres: Mai ai <b>${nextGoal - currentStreak} zile</b> până la acest premiu.</span>
+            </div>
+        `;
     }
+
 
 }
 
