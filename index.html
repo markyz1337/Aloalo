@@ -720,7 +720,7 @@ const USER_ID = 'iubita-mea';
 const PAROLA_SECRETA = "69";
 
 const MOCK_DATA = {
-    points: 125,
+    points: 15,
     streak: 7, // Aici pui numărul de zile pe care vrei să-l simulezi
     history: ["Masaj Spate (01.05.2026)", "Seară de Film (03.05.2026)"],
     last_update: new Date().toISOString()
@@ -1148,15 +1148,28 @@ function clearSearch() {
 
 
 
-function getSortedItems(items) {
-    if (!searchTerm) return items;
-
+function getSortedItems(items, currentPoints) {
     return [...items].sort((a, b) => {
-        const scoreA = calculateScore(a, searchTerm);
-        const scoreB = calculateScore(b, searchTerm);
-        return scoreB - scoreA; // Cele cu scor mai mare primele
+        // 1. Prioritate după disponibilitate (Permise vs Nepermise)
+        const canAffordA = currentPoints >= a.pret ? 1 : 0;
+        const canAffordB = currentPoints >= b.pret ? 1 : 0;
+
+        if (canAffordA !== canAffordB) {
+            return canAffordB - canAffordA; // Cele pe care și le permite stau sus
+        }
+
+        // 2. Dacă ambele sunt în aceeași stare, aplicăm logica de căutare (dacă există)
+        if (searchTerm) {
+            const scoreA = calculateScore(a, searchTerm);
+            const scoreB = calculateScore(b, searchTerm);
+            if (scoreA !== scoreB) return scoreB - scoreA;
+        }
+
+        // 3. Sortare secundară implicită (opțional: după preț crescător)
+        return a.pret - b.pret;
     });
 }
+
 
 function calculateScore(item, term) {
     let score = 0;
@@ -1292,41 +1305,40 @@ function renderUI(userData) {
     const privateSection = document.getElementById('private-section');
 
     if (searchTerm.length > 0) {
-        // --- MODALITATE CĂUTARE (LISTA UNIFICATĂ) ---
         publicLabel.innerText = "Rezultate Căutare";
         privateLabel.style.display = "none";
         privateSection.style.display = "none";
 
-        // Combinăm listele (doar dacă Vault-ul e deblocat includem și privatele)
         let combinedMenu = [...MENIU_PUBLIC];
         if (isPrivateUnlocked) {
             combinedMenu = [...combinedMenu, ...MENIU_PRIVAT];
         }
 
-        const filteredItems = getSortedItems(combinedMenu).filter(item => 
+        // Aplicăm filtrarea ȘI sortarea inteligentă aici
+        const filteredItems = getSortedItems(combinedMenu, userData.points).filter(item => 
             item.titlu.toLowerCase().includes(searchTerm) || 
             item.desc.toLowerCase().includes(searchTerm)
         );
 
         renderGrid('public-grid', filteredItems, userData.points);
     } else {
-        // --- MODALITATE NORMALĂ (SECȚIUNI SEPARATE) ---
         publicLabel.innerText = "Public Rewards";
         privateLabel.style.display = "block";
         privateSection.style.display = "block";
 
-        const sortedPublic = getSortedItems(MENIU_PUBLIC);
+        // Sortăm listele separat înainte de randare
+        const sortedPublic = getSortedItems(MENIU_PUBLIC, userData.points);
         renderGrid('public-grid', sortedPublic, userData.points);
 
         if (isPrivateUnlocked) {
-            const sortedPrivate = getSortedItems(MENIU_PRIVAT);
+            const sortedPrivate = getSortedItems(MENIU_PRIVAT, userData.points);
             renderGrid('private-grid', sortedPrivate, userData.points);
         }
     }
 
-    // Randare Istoric (Rămâne neschimbată)
     renderHistory(userData, isPrivateUnlocked);
 }
+
 
 // Am extras logica de istoric într-o funcție separată pentru curățenie
 function renderHistory(userData, isPrivateUnlocked) {
