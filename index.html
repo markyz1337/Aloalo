@@ -718,6 +718,18 @@
 
 
 
+<!-- MODAL SELECȚIE OPȚIUNI -->
+<div id="selection-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 10000; justify-content: center; align-items: center; display: none;">
+    <div class="glass-card" style="width: 280px; padding: 30px; text-align: center; border-color: var(--accent); margin: auto;">        <span class="pin-label" style="color: var(--accent); margin-bottom: 10px; display: block;">Alegere Răsfăț</span>
+        <h2 id="selection-title" style="margin: 0 0 20px 0; font-size: 1.2rem;">Ce dorești să bei?</h2>
+        
+        <div id="options-container" style="display: grid; gap: 10px; margin-bottom: 20px;">
+            <!-- Butoanele cu opțiuni vor fi injectate aici -->
+        </div>
+
+        <button class="btn-glass" onclick="closeSelectionModal()" style="border: none; opacity: 0.6; font-size: 0.7rem;">Anulează</button>
+    </div>
+</div>
 
 
 
@@ -854,9 +866,17 @@ const MOCK_DATA = {
 
 const MENIU_PUBLIC = [
     // --- GRATUITE ---
-    { id: 101, titlu: "Pupici Gratis", desc: "Un set de pupici dulci, oricând ai nevoie de o doză de iubire.", pret: 0 },
+    { id: 101, titlu: "Kiss me! 💋", desc: "Un set de pupici dulci, oricând ai nevoie de o doză de iubire.", pret: 0 },
     { id: 102, titlu: "Hug Time", desc: "Te cuprind și te încălzesc cu iubire.", pret: 0 },
-     { id: 103, titlu: "Ceai / Cafea", desc: "O cană caldă pregătită cu drag de mine, exact cum îți place.", pret: 0 },
+{ 
+    id: 103, 
+    titlu: "Băutură la alegere", 
+    desc: "Spune-mi ce poftești și îți prepar imediat ceva bun.", 
+    pret: 0,
+    options: ["Apă", "Ceai", "Cafea", "Suc", "Vin", "Capucino"] 
+},
+
+     { id: 104, titlu: "Attention, mon chéri", desc: "Un hint să îți dau mai multă atenție și să las ceea ce fac dacă nu-i ceva cu adevărat important.", pret: 0 },
 
 
     // --- Relaxare și Casă ---
@@ -865,10 +885,10 @@ const MENIU_PUBLIC = [
     { id: 3, titlu: "Mic Dejun", desc: "Omletă și cafea, servită la pat.", pret: 3 },
     { id: 4, titlu: "Masaj Tălpi", desc: "După o zi lungă, sau fără un motiv anume.", pret: 3 },
     { id: 5, titlu: "Seară de Jocuri", desc: "Boardgames sau consolă, promit să te las să câștigi.", pret: 2 },
-    { id: 6, id: 6, titlu: "Baie cu Spumă", desc: "Pregătesc cada, lumânările și muzica ambientală.", pret: 4 },
-    { id: 7, titlu: "Gătit Împreună", desc: "Eu sunt ajutorul tău de bucătar (și spăl vasele).", pret: 3 },
+    { id: 6, titlu: "Baie cu Spumă", desc: "Pregătesc cada, lumânările și muzica ambientală.", pret: 4 },
+    { id: 7, titlu: "Gătit împreună", desc: "Eu sunt ajutorul tău de bucătar (și spăl vasele).", pret: 3 },
     { id: 8, titlu: "Comandă Food Delivery", desc: "Comandăm ceva online, alegi tu meniul.", pret: 10 },
-    { id: 9, titlu: "Seară de Citit", desc: "Liniște deplină și ceai cald în timp ce faci ceva ce îți place.", pret: 1 },
+        { id: 9, titlu: "Bucătar personal", desc: "Alegi ceva de pe canalul meu de telegram cu rețete și eu pregătesc.", pret: 10 },
     { id: 10, titlu: "Home Spa Day", desc: "Facem mască de față, manichiură și relaxare, un fel de noapte cu fetele doar că cu mine 🤣", pret: 11 },
     { id: 11, titlu: "Fără Social Media", desc: "O seară întreagă fără telefoane, doar noi doi.", pret: 2 },
     { id: 12, titlu: "Mic Dejun de Duminică", desc: "Clătite cu ciocolată și fructe.", pret: 6 },
@@ -886,7 +906,7 @@ const MENIU_PUBLIC = [
     { id: 22, titlu: "Misiune: Locație Random", desc: "Mergem într-un local absolut răndom (ales de tine).", pret: 20 },
     { id: 23, titlu: "Pizza Day", desc: "Ziua oficială a pizzei, alegi orice sortiment, sau facem una de casă imensă.", pret: 10 },
     { id: 24, titlu: "Sushi Day", desc: "Comandăm sushi.", pret: 15 },
-    { id: 25, titlu: "Duo la Cratiță (Dulce)", desc: "Facem ceva dulce împreună.", pret: 4 },
+    { id: 25, titlu: "Duo la Cratiță", desc: "Facem ceva dulce împreună.", pret: 4 },
     { id: 26, titlu: "Chef de Dulciuri", desc: "Fac ceva dulce de unul singur pentru tine cu multă iubire!", pret: 8 },
     { id: 28, titlu: "La Țintă", desc: "O întâlnire la poligonul de tras cu arma.", pret: 30 },
     { id: 29, titlu: "Viteză pe Kart", desc: "O întâlnire plină de adrenalină cu kartul.", pret: 30 },
@@ -910,7 +930,7 @@ const MENIU_PUBLIC = [
 
 const MENIU_PRIVAT = [
     // --- GRATUITE ---
-{ id: 301, titlu: "🔥 Sex Time 🔥", desc: "Fără credite, fără scuze. Doar noi doi, acum. Te vreau.", pret: 0, special: true },
+{ id: 301, titlu: "🔥 Sex Ring 🔥", desc: "Fără credite, fără scuze. Doar noi doi, acum. Te vreau.", pret: 0, special: true },
 
     // --- Clasice & Senzuale ---
     { id: 201, titlu: "Masaj Sensual", desc: "Te ung cu uleiuri pe tot corpul și te frământ până te înmoi de tot sub mâinile mele.", pret: 6 },
@@ -931,7 +951,7 @@ const MENIU_PRIVAT = [
     // --- Explorare & Perversiuni ---
     { id: 215, titlu: "Dinner in the Dark", desc: "Te leg la ochi, te dezbrac și te hrănesc goală, restul e surpriză.", pret: 15 },
     { id: 216, titlu: "Shopping în Sex Shop", desc: "Alegi o jucărie și mă obligi să o folosesc pe tine până urli de plăcere.", pret: 30 },
-    { id: 217, titlu: "Fără lenjerie în oraș", desc: "Te scot la masă fără chiloți și te provoc pe sub masă cu degetele.", pret: 25 },
+    { id: 217, titlu: "Fără lenjerie în oraș", desc: "Te scot la masă în oraș fără chiloți și te provoc pe sub masă cu degetele sau cu vibratorul.", pret: 25 },
     { id: 218, titlu: "Body Chocolate", desc: "Te acopăr cu ciocolată sau frișcă și te curăț integral cu limba.", pret: 8 },
     { id: 219, titlu: "The 'Yes' Girl", desc: "Timp de o oră ești stăpâna mea. Orice propunere erotică ai, eu o execut.", pret: 9 },
     { id: 220, titlu: "69 Position (single)", desc: "Eu mă ocup de tot. Stau sub tine și te răsfăț cu limba până la extaz.", pret: 10 },
@@ -939,7 +959,7 @@ const MENIU_PRIVAT = [
     // --- Hardcore & Explicit ---
     { id: 221, titlu: "Preludiu Licker", desc: "Îți ling prietena 5 minute și apoi o lăsăm să se cunoască cu prietenul meu.", pret: 2 },
     { id: 222, titlu: "Creampie Marathon", desc: "Te umplu cu spermă și te las așa; să mă simți cum curg din tine toată noaptea.", pret: 3 },
-    { id: 223, titlu: "Double Penetration Fantasy", desc: "Te fut și cu o jucărie în același timp, să te simți plină.", pret: 6 },
+    { id: 223, titlu: "Double Penetration Fantasy", desc: "Te fut cu o jucărie în același timp, să te simți plină.", pret: 6 },
     { id: 224, titlu: "The Master's Mark", desc: "Îți las semne, mușcături și palme pe fund, să simți că m-ai aparținut.", pret: 3 },
     { id: 225, titlu: "Dirty Face-Slapping", desc: "Te plesnesc peste față cu p*la până când ești amețită de plăcere.", pret: 3 },
 
@@ -947,33 +967,27 @@ const MENIU_PRIVAT = [
     { id: 226, titlu: "Sclavul de sub Birou", desc: "Stau în genunchi la picioarele tale și te ling în timp ce tu mă ignori.", pret: 10 },
     { id: 227, titlu: "Human Dildo", desc: "Mă transform în vibratorul tău. Tu te urci pe mine și mă folosești cum vrei.", pret: 7 },
     { id: 228, titlu: "Pizd* Licker Non-Stop", desc: "Mă pui să te ling până îmi amorțește fața și tu ai terminat de 5 ori.", pret: 7 },
-    { id: 229, titlu: "Găleata de Spermă", desc: "Mă obligi să termin unde vrei tu: pe fața ta, în gură sau să înghiți.", pret: 2 },
     { id: 230, titlu: "Body Marking", desc: "Ai voie să mă muști și să mă zgârii. Sunt al tău.", pret: 15 }
 ];
 
 
 function resetApp(event) {
-    // 1. Prevenim propagarea evenimentului pentru a opri scroll-ul paginii
     if (event) {
         if (typeof event.preventDefault === 'function') event.preventDefault();
         if (typeof event.stopPropagation === 'function') event.stopPropagation();
     }
 
-    // 2. Eliminăm selecția vizuală (focus) și închidem tastatura
     document.activeElement.blur();
-
     const btn = document.getElementById('reset-circle');
-    
-    // 3. Activăm Glow-ul pentru 1 secundă
     if (btn) btn.classList.add('glow-active');
 
-    // 4. RESETARE LOGICĂ VAULT PRIVAT (Blocare)
+    // 1. RESETARE LOGICĂ VAULT PRIVAT (Blocare)
     const overlay = document.getElementById('private-lock-overlay');
     const privateGrid = document.getElementById('private-grid');
     if (overlay) overlay.style.display = 'block'; 
     if (privateGrid) privateGrid.style.display = 'none'; 
 
-    // 5. RESETARE CĂUTARE
+    // 2. RESETARE CĂUTARE
     searchTerm = "";
     const searchInput = document.getElementById('search-input');
     if (searchInput) searchInput.value = "";
@@ -984,25 +998,31 @@ function resetApp(event) {
         clearBtn.style.pointerEvents = "none";
     }
 
-    // 6. RESTRÂNGERE CARDURI (Revenire la 2 elemente)
+    // 3. RESTRÂNGERE CARDURI (Aici am reparat logica)
     expanded.public = false;
     expanded.private = false;
 
-    // 7. ACTUALIZARE INTERFAȚĂ
+    // Resetăm vizual textul butoanelor înainte de re-randare
+    const btnPub = document.getElementById('btn-more-public');
+    const btnPriv = document.getElementById('btn-more-private');
+    if (btnPub) btnPub.style.display = 'none'; 
+    if (btnPriv) btnPriv.style.display = 'none';
+
+    // 4. ACTUALIZARE INTERFAȚĂ
     loadData();
 
-    // 8. SCROLL OPTIMIZAT
+    // 5. SCROLL ȘI EFECTE
     requestAnimationFrame(() => {
         setTimeout(() => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }, 50);
     });
 
-    // 9. DEZACTIVARE GLOW DUPĂ 1 SECUNDĂ
     setTimeout(() => {
         if (btn) btn.classList.remove('glow-active');
     }, 1000);
 }
+
 
 
 
@@ -1317,8 +1337,6 @@ function updatePinDisplay() {
 
 function unlockSuccess() {
     document.getElementById('custom-prompt').style.display = 'none';
-    
-    // Reafișăm butonul de reset
     toggleResetButton(true);
 
     const overlay = document.getElementById('private-lock-overlay');
@@ -1327,9 +1345,12 @@ function unlockSuccess() {
     if(overlay) overlay.style.display = 'none';
     if(privateGrid) {
         privateGrid.style.display = 'grid';
+        // Resetăm starea extinsă la deblocare pentru a nu sări direct la lista lungă
+        expanded.private = false; 
         loadData();
     }
 }
+
 
 
 
@@ -1630,7 +1651,11 @@ function renderGrid(containerId, items, currentPoints) {
         const isFree = item.pret === 0;
         const isSpecial = item.special === true;
         
-        // Stil special pentru "Sex Time"
+        // Pregătim opțiunile pentru a fi trimise ca argument în funcția buy
+        // Dacă item-ul are opțiuni, le transformăm în string JSON sigur pentru HTML
+        const optionsJson = item.options ? JSON.stringify(item.options).replace(/"/g, '&quot;') : 'null';
+        
+        // Stil special pentru cardurile tip "Glow" sau "Sex Time"
         const specialStyle = isSpecial ? `
             background: linear-gradient(145deg, rgba(255, 77, 109, 0.15), rgba(116, 0, 184, 0.15));
             border: 1px solid var(--accent);
@@ -1649,7 +1674,7 @@ function renderGrid(containerId, items, currentPoints) {
                 <p style="font-size:0.85rem; opacity:0.8; line-height:1.5; margin:0; ${isSpecial ? 'font-weight: 600;' : ''}">${item.desc}</p>
                 <button class="btn-glass" 
                     ${currentPoints < item.pret ? 'disabled' : ''} 
-                    onclick="buy('${item.titlu.replace(/'/g, "\\'")}', ${item.pret})"
+                    onclick="buy('${item.titlu.replace(/'/g, "\\'")}', ${item.pret}, ${optionsJson})"
                     style="${isSpecial ? 'background: var(--accent); border: none; margin-top: 20px;' : (isFree ? 'border-color: rgba(0, 212, 255, 0.5);' : '')}">
                     ${isSpecial ? 'VREAU ACUM 💋' : (isFree ? 'Cere acum ✨' : 'Redeem')}
                 </button>
@@ -1657,6 +1682,7 @@ function renderGrid(containerId, items, currentPoints) {
         `;
     }).join('');
 
+    // Gestionarea butonului "Vezi tot"
     const btnMore = document.getElementById(`btn-more-${sectionType}`);
     if (btnMore) {
         if (isSearching || items.length <= 2) {
@@ -1671,69 +1697,103 @@ function renderGrid(containerId, items, currentPoints) {
 
 
 
-async function buy(title, price) {
+
+let pendingPurchase = null; // Stocăm temporar datele când se deschide modalul de opțiuni
+
+// --- FUNCȚIA PRINCIPALĂ DE LANSARE ---
+async function buy(title, price, options = null) {
+    // 1. Verificăm dacă produsul are opțiuni (ex: Cafea, Ceai...)
+    if (options && Array.isArray(options) && options.length > 0) {
+        pendingPurchase = { title, price }; 
+        openSelectionModal(title, options);
+        return; // Oprim execuția până când utilizatorul alege din modal
+    }
+
+    // 2. Dacă nu are opțiuni, procesăm direct achiziția
+    executePurchase(title, price);
+}
+
+// --- LOGICA DE DESCHIDERE MODAL OPȚIUNI ---
+function openSelectionModal(title, options) {
+    const modal = document.getElementById('selection-modal');
+    const container = document.getElementById('options-container');
+    
+    // Resetăm și populăm containerul cu butoane pentru fiecare opțiune
+    container.innerHTML = options.map(opt => `
+        <button class="btn-glass" style="margin: 0; background: rgba(255,255,255,0.05);" 
+            onclick="confirmSelection('${opt.replace(/'/g, "\\'")}')">
+            ${opt}
+        </button>
+    `).join('');
+
+    document.getElementById('selection-title').innerText = "Alege varianta:";
+    modal.style.display = 'flex'; // Afișăm modalul
+}
+
+// --- CONFIRMAREA DIN MODAL ---
+function confirmSelection(choice) {
+    const finalTitle = `${pendingPurchase.title} (${choice})`;
+    closeSelectionModal();
+    executePurchase(finalTitle, pendingPurchase.price);
+}
+
+// --- ÎNCHIDERE MODAL ---
+function closeSelectionModal() {
+    document.getElementById('selection-modal').style.display = 'none';
+    pendingPurchase = null;
+}
+
+// --- PROCESAREA FINALĂ (TESTARE + REALĂ) ---
+async function executePurchase(finalTitle, price) {
+    // A. LOGICA PENTRU MODUL TESTARE
     if (!USE_API) {
-        alert("Sistemul de achiziții este momentan suspendat (Mentenanță).");
+        alert(`✨ [MOD TESTARE ACTIV]\n\nBeneficiu: ${finalTitle}\nCost: ${price} credite\n\nNotă: În varianta Live, punctele ar fi fost scăzute și mesajul trimis pe Telegram.`);
         return;
     }
 
-    if (!confirm(`Confirmi folosirea a ${price} credite pentru "${title}"?`)) return;
+    // B. LOGICA PENTRU MODUL REAL (SUPABASE)
+    if (!confirm(`Confirmi folosirea a ${price} credite pentru "${finalTitle}"?`)) return;
 
-    // 1. Preluăm datele actuale din Supabase
-    let { data } = await _supabase.from('users_data').select('*').eq('id', USER_ID).single();
-
-    if (data.points >= price) {
-        const newPoints = data.points - price;
-        const newHistory = [`${title} (${new Date().toLocaleDateString('ro-RO')})`, ...data.history];
-
-        // 2. Actualizăm baza de date
-        const { error } = await _supabase
+    try {
+        // Luăm datele actuale ale utilizatorului
+        let { data, error: fetchError } = await _supabase
             .from('users_data')
-            .update({ 
-                points: newPoints, 
-                history: newHistory.slice(0, 5) 
-            })
-            .eq('id', USER_ID);
+            .select('*')
+            .eq('id', USER_ID)
+            .single();
 
-        if (!error) {
-            // --- NOTIFICARE TELEGRAM ---
-            
-            // Căutăm descrierea beneficiului în listele de obiecte
-            const toateBeneficiile = [...MENIU_PUBLIC, ...MENIU_PRIVAT];
-            const beneficiuGasit = toateBeneficiile.find(b => b.titlu === title);
-            const descriere = beneficiuGasit ? beneficiuGasit.desc : "Fără descriere";
+        if (fetchError) throw fetchError;
 
-            const botToken = "8665700807:AAGUePmZoK7Oo83QdFPJWUmpv-EjOMG9A-A";
-            const chatId = "976748886";
-            
-            // Construim mesajul cu titlu, descriere și preț
-            const mesaj = 
-                          `❤️ *A ales:* ${title}\n` +
-                          `📝 *Descriere:* _${descriere}_\n\n` +
-                          `💰 *Preț:* ${price} credite\n` +
-                          `✨ *Balanță nouă:* ${newPoints} credite\n\n\n` +
-                          `xxxxxxxxxxxxxxxxxxxxxx\n\n\n`;
+        if (data.points >= price) {
+            const newPoints = data.points - price;
+            // Adăugăm în istoric și păstrăm doar ultimele 10 intrări
+            const newHistory = [`${finalTitle} (${new Date().toLocaleDateString('ro-RO')})`, ...data.history].slice(0, 10);
 
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: mesaj,
-                    parse_mode: "Markdown"
-                })
-            })
-            .then(() => console.log("Notificare Telegram trimisă!"))
-            .catch(err => console.error("Eroare Telegram:", err));
-            // ---------------------------
+            // Actualizăm baza de date
+            const { error: updateError } = await _supabase
+                .from('users_data')
+                .update({ points: newPoints, history: newHistory })
+                .eq('id', USER_ID);
 
-            alert("🎉 Felicitări! Ai deblocat: " + title);
-            loadData();
+            if (updateError) throw updateError;
+
+            // Trimitem notificare pe Telegram
+            sendTelegramNotification(finalTitle, price, newPoints);
+
+            alert("🎉 Felicitări! Ai deblocat: " + finalTitle);
+            loadData(); // Reîncărcăm interfața pentru a vedea noile puncte
+        } else {
+            alert("Nu ai destule credite! ✨ Mai fă niște streak-uri!");
         }
-    } else {
-        alert("Nu ai destule puncte!");
+    } catch (err) {
+        console.error("Eroare la achiziție:", err);
+        alert("A apărut o eroare. Încearcă din nou.");
     }
 }
+
+
+
+
 
 
 
