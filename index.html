@@ -1791,9 +1791,8 @@ function closeConfirm() {
 
 async function buy(title, price, options = null) {
     const e = window.event;
-    if (!e || (e.type === 'click' && e.screenX === 0 && e.screenY === 0)) return; 
-
-    // Găsim descrierea beneficiului în meniuri
+    // Eliminăm verificarea strictă care uneori blochează click-urile pe mobil
+    
     const itemInfo = [...MENIU_PUBLIC, ...MENIU_PRIVAT].find(i => i.titlu === title);
     const descriere = itemInfo ? itemInfo.desc : "Fără descriere";
 
@@ -1818,23 +1817,28 @@ async function buy(title, price, options = null) {
 
                 if (data.points >= price) {
                     const newPoints = data.points - price;
-                    const newHistory = [`${finalTitle} (${new Date().toLocaleDateString('ro-RO')})`, ...data.history];
+                    
+                    // --- REPARARE AICI: Dacă history e NULL, folosim un array gol ---
+                    const oldHistory = data.history || []; 
+                    const newHistory = [`${finalTitle} (${new Date().toLocaleDateString('ro-RO')})`, ...oldHistory];
 
-                    await _supabase
+                    const { error: updateError } = await _supabase
                         .from('users_data')
-                        .update({ points: newPoints, history: newHistory.slice(0, 15) })
+                        .update({ 
+                            points: newPoints, 
+                            history: newHistory.slice(0, 15) 
+                        })
                         .eq('id', USER_ID);
 
-                    // --- NOTIFICARE TELEGRAM CU BOLD ---
+                    if (updateError) throw updateError;
+
+                    // --- NOTIFICARE TELEGRAM ---
                     const botToken = "8665700807:AAGUePmZoK7Oo83QdFPJWUmpv-EjOMG9A-A";
                     const chatId = "976748886";
-                    
-                    // Folosim * pentru Bold în Markdown
                     const mesaj = `❤️ A ales: *${finalTitle}*\n` +
                                  `📝 Descriere: *${descriere}*\n\n` +
                                  `💰 Preț: *${price} credite*\n` + 
-                                 `✨ Balanță nouă: *${newPoints} credite*\n\n` +
-                                 `xxxxxxxxxxxxxxxxxxxxxx`;
+                                 `✨ Balanță nouă: *${newPoints} credite*`;
 
                     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                         method: 'POST',
@@ -1842,20 +1846,23 @@ async function buy(title, price, options = null) {
                         body: JSON.stringify({ 
                             chat_id: chatId, 
                             text: mesaj,
-                            parse_mode: "Markdown" // Activăm formatarea
+                            parse_mode: "Markdown"
                         })
                     });
 
+                    // Reîncărcăm datele pentru a vedea schimbarea în UI
                     loadData();
                 } else {
                     alert("Nu ai destule credite! ⚡");
                 }
             } catch (err) {
-                console.error(err);
+                console.error("Eroare la cumpărare:", err);
+                alert("A apărut o eroare la procesarea tranzacției.");
             }
         }
     });
 }
+
 
 
 
