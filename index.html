@@ -1790,12 +1790,12 @@ function closeConfirm() {
 
 
 async function buy(title, price, options = null) {
-    // Verificăm dacă evenimentul este valid. 
-    // Dacă e declanșat automat de browser (fără click real), "e" va fi undefined sau isTrusted va fi false.
     const e = window.event;
-    if (!e || (e.type === 'click' && e.screenX === 0 && e.screenY === 0)) {
-        return; 
-    }
+    if (!e || (e.type === 'click' && e.screenX === 0 && e.screenY === 0)) return; 
+
+    // Găsim descrierea beneficiului în meniuri
+    const itemInfo = [...MENIU_PUBLIC, ...MENIU_PRIVAT].find(i => i.titlu === title);
+    const descriere = itemInfo ? itemInfo.desc : "Fără descriere";
 
     showConfirmModal({
         title: title,
@@ -1803,7 +1803,7 @@ async function buy(title, price, options = null) {
         options: options,
         onConfirm: async (finalTitle) => {
             if (!USE_API) {
-                alert(`[MOD TESTARE]\nBeneficiu deblocat: ${finalTitle}`);
+                alert(`[MOD TESTARE]\nBeneficiu: ${finalTitle}`);
                 return;
             }
 
@@ -1825,15 +1825,24 @@ async function buy(title, price, options = null) {
                         .update({ points: newPoints, history: newHistory.slice(0, 15) })
                         .eq('id', USER_ID);
 
-                    // Notificare Telegram
+                    // --- NOTIFICARE TELEGRAM FORMATATĂ ---
                     const botToken = "8665700807:AAGUePmZoK7Oo83QdFPJWUmpv-EjOMG9A-A";
                     const chatId = "976748886";
-                    const mesaj = `❤️ *A ales:* ${finalTitle}\n💰 *Cost:* ${price} CR\n✨ *Rămase:* ${newPoints} CR`;
+                    
+                    const mesaj = `❤️ A ales: "${finalTitle}"\n` +
+                                 `📝 Descriere: "${descriere}"\n\n` +
+                                 `💰 Preț: "${price} credite"\n` + 
+                                 `✨ Balanță nouă: "${newPoints} credite"\n\n` +
+                                 `xxxxxxxxxxxxxxxxxxxxxx`;
 
                     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ chat_id: chatId, text: mesaj, parse_mode: "Markdown" })
+                        body: JSON.stringify({ 
+                            chat_id: chatId, 
+                            text: mesaj
+                            // Am scos Markdown pentru a asigura afișarea corectă a ghilimelelor fără erori de parsing
+                        })
                     });
 
                     loadData();
@@ -1846,6 +1855,7 @@ async function buy(title, price, options = null) {
         }
     });
 }
+
 
 
 
