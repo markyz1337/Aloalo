@@ -1410,7 +1410,7 @@ function renderGrid(containerId, items, currentPoints) {
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:15px;">
                     <h3 style="margin:0; font-size:1.1rem; line-height:1.2; ${isSpecial ? 'color: #ff4d6d; text-shadow: 0 0 10px rgba(255,77,109,0.5);' : ''}">${item.titlu}</h3>
                     <span class="price-tag" style="${isSpecial ? 'background: var(--accent); color: white;' : (isFree ? 'background: rgba(0, 212, 255, 0.1); color: #00d4ff;' : '')}">
-                        ${isSpecial ? 'NOW' : (isFree ? 'NOW' : item.pret + ' CR')}
+                        ${isSpecial ? 'NOW' : (isFree ? '0 CR' : item.pret + ' CR')}
                     </span>
                 </div>
                 <p style="font-size:0.85rem; opacity:0.8; line-height:1.5; margin:0; ${isSpecial ? 'font-weight: 600;' : ''}">${item.desc}</p>
