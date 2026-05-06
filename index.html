@@ -608,6 +608,11 @@
 <body>
 
 
+
+
+
+
+
 <div id="reset-circle" onpointerdown="resetApp()" title="Resetare">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M23 4v6h-6"></path>
@@ -711,7 +716,29 @@
 
 
 
+<!-- MODAL CONFIRMARE CUSTOM (CENTRAT PERFECT) -->
+<div id="confirm-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
+    
+    <div class="glass-card" style="width: 100%; max-width: 320px; text-align: center; padding: 30px; border-radius: 32px; border: 1px solid var(--glass-border); box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin: auto;">
+        
+        <div id="confirm-icon" style="font-size: 3.5rem; margin-bottom: 10px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));">🎁</div>
+        
+        <h2 id="confirm-title" style="margin: 10px 0; font-size: 1.4rem; font-weight: 700; color: #fff; letter-spacing: -0.5px;">Confirmare</h2>
+        
+        <p id="confirm-desc" style="font-size: 0.9rem; color: rgba(255,255,255,0.7); line-height: 1.6; margin-bottom: 25px; padding: 0 10px;"></p>
+        
+        <div id="options-container" style="display: none; margin-bottom: 25px; text-align: left;">
+            <span class="pin-label" style="display: block; margin-bottom: 8px; margin-left: 5px; font-size: 0.6rem; opacity: 0.8;">Alege varianta:</span>
+            <select id="confirm-select" style="width: 100%; padding: 14px; border-radius: 18px; background: rgba(255,255,255,0.07); border: 1px solid var(--glass-border); color: white; outline: none; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.9rem; cursor: pointer; appearance: none; -webkit-appearance: none;">
+            </select>
+        </div>
 
+        <div style="display: flex; gap: 12px; margin-top: 10px;">
+            <button class="btn-glass" onclick="closeConfirm(false)" style="margin: 0; background: rgba(255,255,255,0.05); flex: 1; border-radius: 20px; font-size: 0.7rem;">ANULEAZĂ</button>
+            <button id="confirm-execute" class="btn-glass" style="margin: 0; background: var(--accent); flex: 1.2; border-radius: 20px; border: none; font-size: 0.7rem; box-shadow: 0 10px 20px var(--accent-glow);">CONFIRMĂ</button>
+        </div>
+    </div>
+</div>
 
 
 
@@ -1638,12 +1665,9 @@ function renderGrid(containerId, items, currentPoints) {
     container.innerHTML = itemsToShow.map(item => {
         const isFree = item.pret === 0;
         const isSpecial = item.special === true;
-        
-        // Pregătim opțiunile pentru a fi trimise ca argument în funcția buy
-        // Dacă item-ul are opțiuni, le transformăm în string JSON sigur pentru HTML
         const optionsJson = item.options ? JSON.stringify(item.options).replace(/"/g, '&quot;') : 'null';
         
-        // Stil special pentru cardurile tip "Glow" sau "Sex Time"
+        // --- Stil SPECIAL (Sex Time) ---
         const specialStyle = isSpecial ? `
             background: linear-gradient(145deg, rgba(255, 77, 109, 0.15), rgba(116, 0, 184, 0.15));
             border: 1px solid var(--accent);
@@ -1651,26 +1675,57 @@ function renderGrid(containerId, items, currentPoints) {
             animation: pulse-special 2s infinite;
         ` : '';
 
+        // --- CONFIGURARE ALBASTRU (Pentru Gratuitate) ---
+        const blueAccent = "#00d4ff";
+        const blueGlow = "rgba(0, 212, 255, 0.4)";
+        
+        const freeCardStyle = (isFree && !isSpecial) ? `border-color: ${blueAccent}66;` : '';
+        const freeTagStyle = (isFree && !isSpecial) ? `background: ${blueAccent}1a; color: ${blueAccent}; border: 1px solid ${blueAccent}33;` : '';
+        
+        // Folosim o clasă sau un identificator pentru a injecta stilul de hover albastru direct
+        const freeBtnId = `btn-free-${item.id}`;
+        const freeBtnStyle = (isFree && !isSpecial) ? `
+            border-color: ${blueAccent}80; 
+            color: ${blueAccent}; 
+            background: ${blueAccent}0d;
+        ` : '';
+
         return `
-            <div class="glass-card" style="${specialStyle} ${isFree && !isSpecial ? 'border-color: rgba(0, 212, 255, 0.3);' : ''}">
+            <div class="glass-card" style="${specialStyle} ${freeCardStyle}">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:15px;">
                     <h3 style="margin:0; font-size:1.1rem; line-height:1.2; ${isSpecial ? 'color: #ff4d6d; text-shadow: 0 0 10px rgba(255,77,109,0.5);' : ''}">${item.titlu}</h3>
-                    <span class="price-tag" style="${isSpecial ? 'background: var(--accent); color: white;' : (isFree ? 'background: rgba(0, 212, 255, 0.1); color: #00d4ff;' : '')}">
+                    <span class="price-tag" style="${isSpecial ? 'background: var(--accent); color: white;' : (isFree ? freeTagStyle : '')}">
                         ${isSpecial ? 'NOW' : (isFree ? 'FREE' : item.pret + ' CR')}
                     </span>
                 </div>
                 <p style="font-size:0.85rem; opacity:0.8; line-height:1.5; margin:0; ${isSpecial ? 'font-weight: 600;' : ''}">${item.desc}</p>
-                <button class="btn-glass" 
+                
+                <button class="btn-glass ${isFree && !isSpecial ? 'blue-btn' : ''}" 
                     ${currentPoints < item.pret ? 'disabled' : ''} 
                     onclick="buy('${item.titlu.replace(/'/g, "\\'")}', ${item.pret}, ${optionsJson})"
-                    style="${isSpecial ? 'background: var(--accent); border: none; margin-top: 20px;' : (isFree ? 'border-color: rgba(0, 212, 255, 0.5);' : '')}">
+                    style="${isSpecial ? 'background: var(--accent); border: none; margin-top: 20px;' : freeBtnStyle}">
                     ${isSpecial ? 'VREAU ACUM 💋' : (isFree ? 'Cere acum ✨' : 'Redeem')}
                 </button>
             </div>
+            
+            ${isFree && !isSpecial ? `
+            <style>
+                /* Scăpăm de umbra roz la hover/click pentru butoanele albastre */
+                .blue-btn:hover {
+                    background: ${blueAccent}33 !important;
+                    box-shadow: 0 0 15px ${blueGlow} !important;
+                    border-color: ${blueAccent} !important;
+                    color: #fff !important;
+                }
+                .blue-btn:active {
+                    transform: scale(0.95);
+                }
+            </style>
+            ` : ''}
         `;
     }).join('');
 
-    // Gestionarea butonului "Vezi tot"
+    // ... restul funcției (btnMore) rămâne la fel
     const btnMore = document.getElementById(`btn-more-${sectionType}`);
     if (btnMore) {
         if (isSearching || items.length <= 2) {
@@ -1686,91 +1741,104 @@ function renderGrid(containerId, items, currentPoints) {
 
 
 
-async function buy(title, price, options = null) {
-    let finalTitle = title;
+
+
+
+
+let currentPurchaseData = null;
+
+function showConfirmModal({ title, price, options, onConfirm }) {
+    const modal = document.getElementById('confirm-modal');
+    const titleElem = document.getElementById('confirm-title');
+    const descElem = document.getElementById('confirm-desc');
+    const iconElem = document.getElementById('confirm-icon');
+    const optionsCont = document.getElementById('options-container');
+    const selectElem = document.getElementById('confirm-select');
+    const executeBtn = document.getElementById('confirm-execute');
+
+    // Resetăm UI
+    titleElem.innerText = title;
+    descElem.innerHTML = price === 0 ? "Acest beneficiu este <b>gratuit</b>. Îl dorești acum?" : `Vrei să folosești <b>${price} credite</b> pentru acest beneficiu?`;
+    iconElem.innerText = price === 0 ? "✨" : "💖";
     
-    // 1. LOGICĂ SELECȚIE (Ex: Ceai sau Cafea)
-    // Apare prompt-ul de alegere înainte de orice altceva
+    // Tratăm opțiunile (dacă există)
     if (options && options.length > 0) {
-        const alegere = prompt(`Ce dorești să alegi? (${options.join(' / ')})`, options[0]);
-        
-        // Dacă utilizatorul apasă "Cancel", oprim procesul
-        if (alegere === null) return;
-        
-        // Verificăm dacă ce a scris se potrivește cu opțiunile, altfel luăm exact ce a scris
-        const optiuneValida = options.find(o => o.toLowerCase() === alegere.toLowerCase()) || alegere;
-        finalTitle = `${title} (${optiuneValida})`;
+        optionsCont.style.display = 'block';
+        selectElem.innerHTML = options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+    } else {
+        optionsCont.style.display = 'none';
     }
 
-    // 2. MOD TESTARE (Fără API / CORS)
-    if (!USE_API) {
-        alert(`[MOD TESTARE]\nBeneficiu: ${finalTitle}\nCost: ${price} credite\n\nActivează USE_API pe GitHub pentru salvare reală.`);
-        return;
-    }
+    modal.style.display = 'flex';
 
-    // 3. CONFIRMARE FINALĂ
-    if (!confirm(`Confirmi folosirea a ${price} credite pentru "${finalTitle}"?`)) return;
-
-    // 4. LOGICĂ SUPABASE
-    try {
-        let { data, error: fetchError } = await _supabase
-            .from('users_data')
-            .select('*')
-            .eq('id', USER_ID)
-            .single();
-
-        if (fetchError) throw fetchError;
-
-        if (data.points >= price) {
-            const newPoints = data.points - price;
-            // Adăugăm în istoric titlul final (care include și opțiunea aleasă)
-            const newHistory = [`${finalTitle} (${new Date().toLocaleDateString('ro-RO')})`, ...data.history];
-
-            const { error: updateError } = await _supabase
-                .from('users_data')
-                .update({ 
-                    points: newPoints, 
-                    history: newHistory.slice(0, 5) 
-                })
-                .eq('id', USER_ID);
-
-            if (updateError) throw updateError;
-
-            // 5. NOTIFICARE TELEGRAM
-            const toateBeneficiile = [...MENIU_PUBLIC, ...MENIU_PRIVAT];
-            const beneficiuOriginal = toateBeneficiile.find(b => b.titlu === title);
-            const descriere = beneficiuOriginal ? beneficiuOriginal.desc : "Fără descriere";
-
-            const botToken = "8665700807:AAGUePmZoK7Oo83QdFPJWUmpv-EjOMG9A-A";
-            const chatId = "976748886";
-            
-            const mesaj = 
-                `❤️ *A ales:* ${finalTitle}\n` +
-                `📝 *Descriere:* _${descriere}_\n\n` +
-                `💰 *Preț:* ${price} credite\n` +
-                `✨ *Balanță nouă:* ${newPoints} credite\n\n` +
-                `xxxxxxxxxxxxxxxxxxxxxx`;
-
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: mesaj,
-                    parse_mode: "Markdown"
-                })
-            }).catch(err => console.error("Eroare Telegram:", err));
-
-            alert("🎉 Felicitări! Ai deblocat: " + finalTitle);
-            loadData(); // Reîncărcăm datele pentru a actualiza interfața
-        } else {
-            alert("Nu ai destule credite! ⚡");
+    // Handler pentru butonul de confirmare
+    executeBtn.onclick = () => {
+        let finalTitle = title;
+        if (options && options.length > 0) {
+            finalTitle = `${title} (${selectElem.value})`;
         }
-    } catch (err) {
-        console.error("Eroare sistem:", err);
-        alert("A apărut o eroare la procesare. Verifică conexiunea sau consola.");
-    }
+        closeConfirm(true);
+        onConfirm(finalTitle);
+    };
 }
+
+function closeConfirm(confirmed) {
+    document.getElementById('confirm-modal').style.display = 'none';
+}
+
+// FUNCȚIA BUY REVIZUITĂ
+async function buy(title, price, options = null) {
+    showConfirmModal({
+        title: title,
+        price: price,
+        options: options,
+        onConfirm: async (finalTitle) => {
+            // Aici începe logica ta de procesare (Supabase + Telegram)
+            if (!USE_API) {
+                alert(`[MOD TESTARE]\nBeneficiu deblocat: ${finalTitle}`);
+                return;
+            }
+
+            try {
+                let { data, error: fetchError } = await _supabase
+                    .from('users_data')
+                    .select('*')
+                    .eq('id', USER_ID)
+                    .single();
+
+                if (fetchError) throw fetchError;
+
+                if (data.points >= price) {
+                    const newPoints = data.points - price;
+                    const newHistory = [`${finalTitle} (${new Date().toLocaleDateString('ro-RO')})`, ...data.history];
+
+                    await _supabase
+                        .from('users_data')
+                        .update({ points: newPoints, history: newHistory.slice(0, 8) })
+                        .eq('id', USER_ID);
+
+                    // Notificare Telegram
+                    const botToken = "8665700807:AAGUePmZoK7Oo83QdFPJWUmpv-EjOMG9A-A";
+                    const chatId = "976748886";
+                    const mesaj = `❤️ *A ales:* ${finalTitle}\n💰 *Cost:* ${price} CR\n✨ *Rămase:* ${newPoints} CR`;
+
+                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chat_id: chatId, text: mesaj, parse_mode: "Markdown" })
+                    });
+
+                    loadData();
+                } else {
+                    alert("Nu ai destule credite! ⚡");
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    });
+}
+
 
 
 
