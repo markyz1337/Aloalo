@@ -1011,17 +1011,23 @@ async function resetApp(event) {
     expanded.public = false;
     expanded.private = false;
 
-    // 2. Blocăm Vault-ul Privat imediat (vizual)
+    // 2. Blocăm Vault-ul Privat imediat și ASCUNDEM butoanele "Vezi tot"
     const overlay = document.getElementById('private-lock-overlay');
     const privateGrid = document.getElementById('private-grid');
+    const btnMorePrivate = document.getElementById('btn-more-private');
+    const btnMorePublic = document.getElementById('btn-more-public');
+
     if (overlay) overlay.style.display = 'block'; 
     if (privateGrid) privateGrid.style.display = 'none'; 
+    
+    // Forțăm ascunderea butoanelor de expansiune la reset
+    if (btnMorePrivate) btnMorePrivate.style.display = 'none';
+    if (btnMorePublic) btnMorePublic.style.display = 'none';
 
-    // 3. AȘTEPTĂM ca interfața să se updateze (să se facă scurtă)
+    // 3. Încărcăm datele
     await loadData();
 
-    // 4. Acum că pagina e scurtă, dăm scroll sus
-    // Folosim requestAnimationFrame pentru a fi siguri că browserul a procesat noua înălțime
+    // 4. Scroll sus după ce interfața s-a curățat
     requestAnimationFrame(() => {
         window.scrollTo({
             top: 0,
@@ -1033,6 +1039,7 @@ async function resetApp(event) {
         if (btn) btn.classList.remove('glow-active');
     }, 1000);
 }
+
 
 
 
