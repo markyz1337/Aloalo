@@ -1822,7 +1822,7 @@ async function buy(title, price, options = null) {
 
                     await _supabase
                         .from('users_data')
-                        .update({ points: newPoints, history: newHistory.slice(0, 15) })
+                        .update({ points: newPoints, history: newHistory.slice(0, 5) })
                         .eq('id', USER_ID);
 
                     // --- NOTIFICARE TELEGRAM FORMATATĂ ---
