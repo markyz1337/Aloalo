@@ -1699,27 +1699,49 @@ function renderGrid(containerId, items, currentPoints) {
 
 
 
-let pendingPurchase = null; // Stocăm temporar datele când se deschide modalul de opțiuni
+// --- CONFIGURARE TELEGRAM ---
+const botToken = "8665700807:AAGUePmZoK7Oo83QdFPJWUmpv-EjOMG9A-A";
+const chatId = "976748886";
 
-// --- FUNCȚIA PRINCIPALĂ DE LANSARE ---
-async function buy(title, price, options = null) {
-    // 1. Verificăm dacă produsul are opțiuni (ex: Cafea, Ceai...)
-    if (options && Array.isArray(options) && options.length > 0) {
-        pendingPurchase = { title, price }; 
-        openSelectionModal(title, options);
-        return; // Oprim execuția până când utilizatorul alege din modal
+async function sendTelegramNotification(title, descriere, price, newPoints) {
+    const mesaj = 
+        `❤️ *A ales:* ${title}\n` +
+        `📝 *Descriere:* _${descriere}_\n\n` +
+        `💰 *Preț:* ${price} credite\n` +
+        `✨ *Balanță nouă:* ${newPoints} credite\n\n\n` +
+        `xxxxxxxxxxxxxxxxxxxxxx\n\n\n`;
+
+    try {
+        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text: mesaj,
+                parse_mode: 'Markdown'
+            })
+        });
+    } catch (e) {
+        console.error("Eroare Telegram:", e);
     }
-
-    // 2. Dacă nu are opțiuni, procesăm direct achiziția
-    executePurchase(title, price);
 }
 
-// --- LOGICA DE DESCHIDERE MODAL OPȚIUNI ---
+let pendingPurchase = null; 
+
+// --- MODIFICARE: Adăugăm descrierea în obiectul temporar ---
+async function buy(title, price, descriere, options = null) {
+    if (options && Array.isArray(options) && options.length > 0) {
+        pendingPurchase = { title, price, descriere }; 
+        openSelectionModal(title, options);
+        return;
+    }
+    executePurchase(title, price, descriere);
+}
+
 function openSelectionModal(title, options) {
     const modal = document.getElementById('selection-modal');
     const container = document.getElementById('options-container');
     
-    // Resetăm și populăm containerul cu butoane pentru fiecare opțiune
     container.innerHTML = options.map(opt => `
         <button class="btn-glass" style="margin: 0; background: rgba(255,255,255,0.05);" 
             onclick="confirmSelection('${opt.replace(/'/g, "\\'")}')">
@@ -1728,35 +1750,32 @@ function openSelectionModal(title, options) {
     `).join('');
 
     document.getElementById('selection-title').innerText = "Alege varianta:";
-    modal.style.display = 'flex'; // Afișăm modalul
+    modal.style.display = 'flex';
 }
 
-// --- CONFIRMAREA DIN MODAL ---
 function confirmSelection(choice) {
     const finalTitle = `${pendingPurchase.title} (${choice})`;
+    const desc = pendingPurchase.descriere;
+    const prc = pendingPurchase.price;
     closeSelectionModal();
-    executePurchase(finalTitle, pendingPurchase.price);
+    executePurchase(finalTitle, prc, desc);
 }
 
-// --- ÎNCHIDERE MODAL ---
 function closeSelectionModal() {
     document.getElementById('selection-modal').style.display = 'none';
     pendingPurchase = null;
 }
 
-// --- PROCESAREA FINALĂ (TESTARE + REALĂ) ---
-async function executePurchase(finalTitle, price) {
-    // A. LOGICA PENTRU MODUL TESTARE
+// --- PROCESAREA FINALĂ ---
+async function executePurchase(finalTitle, price, descriere = "Fără descriere") {
     if (!USE_API) {
-        alert(`✨ [MOD TESTARE ACTIV]\n\nBeneficiu: ${finalTitle}\nCost: ${price} credite\n\nNotă: În varianta Live, punctele ar fi fost scăzute și mesajul trimis pe Telegram.`);
+        alert(`✨ [MOD TESTARE]\nBeneficiu: ${finalTitle}\nCost: ${price}`);
         return;
     }
 
-    // B. LOGICA PENTRU MODUL REAL (SUPABASE)
     if (!confirm(`Confirmi folosirea a ${price} credite pentru "${finalTitle}"?`)) return;
 
     try {
-        // Luăm datele actuale ale utilizatorului
         let { data, error: fetchError } = await _supabase
             .from('users_data')
             .select('*')
@@ -1767,10 +1786,9 @@ async function executePurchase(finalTitle, price) {
 
         if (data.points >= price) {
             const newPoints = data.points - price;
-            // Adăugăm în istoric și păstrăm doar ultimele 10 intrări
-            const newHistory = [`${finalTitle} (${new Date().toLocaleDateString('ro-RO')})`, ...data.history].slice(0, 10);
+            const dataRo = new Date().toLocaleDateString('ro-RO');
+            const newHistory = [`${finalTitle} (${dataRo})`, ...data.history].slice(0, 10);
 
-            // Actualizăm baza de date
             const { error: updateError } = await _supabase
                 .from('users_data')
                 .update({ points: newPoints, history: newHistory })
@@ -1778,19 +1796,20 @@ async function executePurchase(finalTitle, price) {
 
             if (updateError) throw updateError;
 
-            // Trimitem notificare pe Telegram
-            sendTelegramNotification(finalTitle, price, newPoints);
+            // TRIMITERE NOTIFICARE CU DATELE CERUTE
+            await sendTelegramNotification(finalTitle, descriere, price, newPoints);
 
             alert("🎉 Felicitări! Ai deblocat: " + finalTitle);
-            loadData(); // Reîncărcăm interfața pentru a vedea noile puncte
+            loadData(); 
         } else {
-            alert("Nu ai destule credite! ✨ Mai fă niște streak-uri!");
+            alert("Nu ai destule credite! ✨");
         }
     } catch (err) {
-        console.error("Eroare la achiziție:", err);
-        alert("A apărut o eroare. Încearcă din nou.");
+        console.error("Eroare:", err);
+        alert("Eroare la procesare.");
     }
 }
+
 
 
 
