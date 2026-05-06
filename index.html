@@ -492,6 +492,11 @@
 }
 
 
+@keyframes pulse-special {
+    0% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 77, 109, 0.2); }
+    50% { transform: scale(1.009); box-shadow: 0 0 25px rgba(255, 77, 109, 0.4); }
+    100% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 77, 109, 0.2); }
+}
 
 
 
@@ -702,7 +707,7 @@
 
     <script>
 // --- CONFIGURARE MOD FUNCTIONARE ---
-const USE_API = true; 
+const USE_API = false; 
 // ------------------------------------
 
 const SUPABASE_URL = 'https://fndjrfieitieqzafhyzz.supabase.co';
@@ -730,13 +735,19 @@ const MOCK_DATA = {
 
 
 const MENIU_PUBLIC = [
+    // --- GRATUITE ---
+    { id: 101, titlu: "Pupici Gratis", desc: "Un set de pupici dulci, oricând ai nevoie de o doză de iubire.", pret: 0 },
+    { id: 102, titlu: "Hug Time", desc: "Te cuprind și te încălzesc cu iubire.", pret: 0 },
+     { id: 103, titlu: "Ceai / Cafea", desc: "O cană caldă pregătită cu drag de mine, exact cum îți place.", pret: 0 },
+
+
     // --- Relaxare și Casă ---
     { id: 1, titlu: "Masaj Spate", desc: "Relaxare completă.", pret: 2 },
     { id: 2, titlu: "Seară de Film", desc: "Tu alegi filmul, eu aduc floricelele.", pret: 4 },
     { id: 3, titlu: "Mic Dejun", desc: "Omletă și cafea, servită la pat.", pret: 3 },
     { id: 4, titlu: "Masaj Tălpi", desc: "După o zi lungă, sau fără un motiv anume.", pret: 3 },
     { id: 5, titlu: "Seară de Jocuri", desc: "Boardgames sau consolă, promit să te las să câștigi.", pret: 2 },
-    { id: 6, titlu: "Baie cu Spumă", desc: "Pregătesc cada, lumânările și muzica ambientală.", pret: 4 },
+    { id: 6, id: 6, titlu: "Baie cu Spumă", desc: "Pregătesc cada, lumânările și muzica ambientală.", pret: 4 },
     { id: 7, titlu: "Gătit Împreună", desc: "Eu sunt ajutorul tău de bucătar (și spăl vasele).", pret: 3 },
     { id: 8, titlu: "Comandă Food Delivery", desc: "Comandăm ceva online, alegi tu meniul.", pret: 10 },
     { id: 9, titlu: "Seară de Citit", desc: "Liniște deplină și ceai cald în timp ce faci ceva ce îți place.", pret: 1 },
@@ -752,13 +763,13 @@ const MENIU_PUBLIC = [
     { id: 19, titlu: "Degustare Brânzeturi", desc: "Vin, cașcaval și fructe, pregătite de mine.", pret: 12 },
     { id: 20, titlu: "Seară de Pictură", desc: "Două pânze, vin și multă creativitate.", pret: 10 },
 
-    // --- Ieșiri, Evenimente și Activități Noi ---
+    // --- Ieșiri și Activități ---
     { id: 21, titlu: "Apus cu Gustări", desc: "Ieșim afară să vedem apusul cu ceva snack-uri.", pret: 3 },
     { id: 22, titlu: "Misiune: Locație Random", desc: "Mergem într-un local absolut răndom (ales de tine).", pret: 20 },
     { id: 23, titlu: "Pizza Day", desc: "Ziua oficială a pizzei, alegi orice sortiment, sau facem una de casă imensă.", pret: 10 },
     { id: 24, titlu: "Sushi Day", desc: "Comandăm sushi.", pret: 15 },
     { id: 25, titlu: "Duo la Cratiță (Dulce)", desc: "Facem ceva dulce împreună.", pret: 4 },
-    { id: 26, titlu: "Chef de Dulciuri", desc: "Fac ceva dulce de unul singur pentru tine cu multă - multă - multă iubire!", pret: 8 },
+    { id: 26, titlu: "Chef de Dulciuri", desc: "Fac ceva dulce de unul singur pentru tine cu multă iubire!", pret: 8 },
     { id: 28, titlu: "La Țintă", desc: "O întâlnire la poligonul de tras cu arma.", pret: 30 },
     { id: 29, titlu: "Viteză pe Kart", desc: "O întâlnire plină de adrenalină cu kartul.", pret: 30 },
     { id: 30, titlu: "Ziua Pupicilor", desc: "O zi în care te pup non-stop.", pret: 5 },
@@ -768,7 +779,7 @@ const MENIU_PUBLIC = [
     { id: 34, titlu: "Bilet la Concert", desc: "Mergem la trupa ta preferată.", pret: 20 },
     { id: 35, titlu: "Dansăm împreună", desc: "Ceva ușurel, singuri și cu iubire.", pret: 7 },
     { id: 36, titlu: "Plimbare cu Barca", desc: "O oră de liniște pe lac.", pret: 8 },
-    { id: 37, titlu: "Apartament cu jacuzzi.", desc: "Relaxare totală în piscină termală la un apartament cu jacuzzi (1 zi).", pret: 50 },
+    { id: 37, titlu: "Apartament cu jacuzzi", desc: "Relaxare totală în piscină termală (1 zi).", pret: 50 },
     { id: 38, titlu: "Shopping Spree", desc: "Alegi un obiect vestimentar, eu îl achit.", pret: 35 },
     { id: 39, titlu: "Cină la restaurant", desc: "O ieșire clasică la restaurantul preferat.", pret: 25 },
     { id: 40, titlu: "Mic dejun în oraș", desc: "Mergem la o cafenea drăguță dimineața.", pret: 3 },
@@ -778,45 +789,50 @@ const MENIU_PUBLIC = [
 ];
 
 
+
 const MENIU_PRIVAT = [
+    // --- GRATUITE ---
+{ id: 301, titlu: "🔥 Sex Time 🔥", desc: "Fără credite, fără scuze. Doar noi doi, acum. Te vreau.", pret: 0, special: true },
+
     // --- Clasice & Senzuale ---
     { id: 201, titlu: "Masaj Sensual", desc: "Te ung cu uleiuri pe tot corpul și te frământ până te înmoi de tot sub mâinile mele.", pret: 6 },
     { id: 202, titlu: "Quickie Surprise", desc: "Te iau prin surprindere și te fut oriunde te prind, să-ți dau un șoc de plăcere.", pret: 3 },
     { id: 203, titlu: "Lingerie Shopping", desc: "Îți alegi cea mai perversă lenjerie, eu sunt sponsorul, doar ca să am plăcerea să o rup de pe tine.", pret: 11 },
-    { id: 204, titlu: "Fantezie Îndeplinită", desc: "Tu propui, eu execut. Sunt unealta ta pentru orice scenariu ai în cap (în limitele agreate).", pret: 7 },
+    { id: 204, titlu: "Fantezie Îndeplinită", desc: "Tu propui, eu execut. Sunt unealta ta pentru orice scenariu ai în cap.", pret: 7 },
     { id: 205, titlu: "Duș în Doi", desc: "Te spăl peste tot, te mângâi sub jetul de apă și te iau direct pe gresia udă.", pret: 3 },
     { id: 206, titlu: "Joc de Rol", desc: "Devin cine vrei tu ca să-ți îndeplinesc orice scenariu pervers.", pret: 9 },
     { id: 207, titlu: "Maraton Sărutări", desc: "Te sărut și te ating 10 minute în continuu pe tot corpul, până te ud de tot.", pret: 2 },
-    { id: 208, titlu: "Blindfolded Fun", desc: "Te leg la ochi și fac ce vreau cu corpul tău, să nu știi de unde vine următoarea atingere.", pret: 5 },
-    { id: 209, titlu: "Poze Interzise", desc: "Te transform în modelul meu porno; o sesiune foto privată în cele mai sexy ipostaze.", pret: 3 },
-    { id: 210, titlu: "Evadare de Lux", desc: "Închiriem un Airbnb exclusivist cu jacuzzi; o noapte întreagă în care ești singura mea prioritate și facem tot ce ai visat.", pret: 30 },
-    { id: 211, titlu: "Morning Delight", desc: "Te trezesc cu limba între picioare; nu te las să te ridici până nu tremuri de orgasm.", pret: 8 },
-    { id: 212, titlu: "Slow Sex Night", desc: "O noapte în care timpul stă în loc. Ne bucurăm de fiecare senzație prin mișcări lente și adânci, până când plăcerea devine copleșitoare.", pret: 3 },
+    { id: 208, titlu: "Blindfolded Fun", desc: "Te leg la ochi și fac ce vreau cu corpul tău, să nu știi de unde vine atingerea.", pret: 5 },
+    { id: 209, titlu: "Poze Interzise", desc: "Te transform în modelul meu; o sesiune foto privată în cele mai sexy ipostaze.", pret: 3 },
+    { id: 210, titlu: "Evadare de Lux", desc: "Închiriem un Airbnb exclusivist cu jacuzzi; o noapte întreagă în care ești prioritatea mea.", pret: 30 },
+    { id: 211, titlu: "Morning Delight", desc: "Te trezesc cu limba între picioare; nu te las până nu tremuri de orgasm.", pret: 8 },
+    { id: 212, titlu: "Slow Sex Night", desc: "O noapte în care timpul stă în loc. Ne bucurăm de fiecare senzație prin mișcări lente.", pret: 3 },
     { id: 213, titlu: "Ne filmăm", desc: "Facem amintiri iubindu-ne.", pret: 3 },
     { id: 214, titlu: "Sânii și buzele", desc: "Te excit doar din gura mea și sânii tăi.", pret: 1 },
 
     // --- Explorare & Perversiuni ---
-    { id: 215, titlu: "Dinner in the Dark", desc: "Te leg la ochi, te dezbrac și te hrănesc culcată și goală, restul deja e surpriză ce fac cu tine.", pret: 15 },
-    { id: 216, titlu: "Shopping în Sex Shop", desc: "Alegi cea mai perversă jucărie și mă obligi să o folosesc pe tine până urli de plăcere.", pret: 30 },
-    { id: 217, titlu: "Fără lenjerie în oraș", desc: "Te scot la masă fără chiloți și te provoc pe sub masă cu degetele sau cu vibratorul, te fac să tremuri când vreau eu.", pret: 25 },
-    { id: 218, titlu: "Body Chocolate", desc: "Te acopăr cu ciocolată sau frișcă și te curăț integral cu limba, insistând unde îți place mai mult.", pret: 8 },
-    { id: 219, titlu: "The 'Yes' Girl", desc: "Timp de o oră ești stăpâna mea. Orice propunere erotică ai, eu o execut fără crâcnire.", pret: 9 },
-    { id: 220, titlu: "69 Position (single)", desc: "Eu mă ocup de tot. Stau sub tine și te răsfăț cu limba până la extaz, fără ca tu să ridici un deget.", pret: 10 },
+    { id: 215, titlu: "Dinner in the Dark", desc: "Te leg la ochi, te dezbrac și te hrănesc goală, restul e surpriză.", pret: 15 },
+    { id: 216, titlu: "Shopping în Sex Shop", desc: "Alegi o jucărie și mă obligi să o folosesc pe tine până urli de plăcere.", pret: 30 },
+    { id: 217, titlu: "Fără lenjerie în oraș", desc: "Te scot la masă fără chiloți și te provoc pe sub masă cu degetele.", pret: 25 },
+    { id: 218, titlu: "Body Chocolate", desc: "Te acopăr cu ciocolată sau frișcă și te curăț integral cu limba.", pret: 8 },
+    { id: 219, titlu: "The 'Yes' Girl", desc: "Timp de o oră ești stăpâna mea. Orice propunere erotică ai, eu o execut.", pret: 9 },
+    { id: 220, titlu: "69 Position (single)", desc: "Eu mă ocup de tot. Stau sub tine și te răsfăț cu limba până la extaz.", pret: 10 },
 
     // --- Hardcore & Explicit ---
     { id: 221, titlu: "Preludiu Licker", desc: "Îți ling prietena 5 minute și apoi o lăsăm să se cunoască cu prietenul meu.", pret: 2 },
     { id: 222, titlu: "Creampie Marathon", desc: "Te umplu cu spermă și te las așa; să mă simți cum curg din tine toată noaptea.", pret: 3 },
-    { id: 223, titlu: "Double Penetration Fantasy", desc: "Te fut și cu o jucărie în același timp, să te simți plină în toate orificiile.", pret: 6 },
-    { id: 224, titlu: "The Master's Mark", desc: "Îți las semne, mușcături și palme pe fund, să simți tot restul zilei cum te-am stăpânit.", pret: 3 },
-    { id: 225, titlu: "Dirty Face-Slapping", desc: "Te plesnesc peste față cu p*la până când ești amețită de plăcere și poftă.", pret: 3 },
+    { id: 223, titlu: "Double Penetration Fantasy", desc: "Te fut și cu o jucărie în același timp, să te simți plină.", pret: 6 },
+    { id: 224, titlu: "The Master's Mark", desc: "Îți las semne, mușcături și palme pe fund, să simți că m-ai aparținut.", pret: 3 },
+    { id: 225, titlu: "Dirty Face-Slapping", desc: "Te plesnesc peste față cu p*la până când ești amețită de plăcere.", pret: 3 },
 
-    // --- Sclavie & Supunere (Ea e Stăpâna) ---
-    { id: 226, titlu: "Sclavul de sub Birou", desc: "Stau în genunchi la picioarele tale și te ling până la extaz în timp ce tu mă ignori, sau poate zâmbești de plăcere.", pret: 10 },
-    { id: 227, titlu: "Human Dildo", desc: "Mă transform în vibratorul tău uman. Nu mă mișc, tu te urci pe mine și mă folosești cum vrei, eu nu fac abslut nici o mișcare, limba o pot scoate dar mișcările le faci tu.", pret: 7 },
-    { id: 228, titlu: "Pizd* Licker Non-Stop", desc: "Mă pui să te ling până îmi amorțește fața și tu ai terminat de cel puțin 5 ori.", pret: 7 },
-    { id: 229, titlu: "Găleata de Spermă", desc: "Mă obligi să termin unde vrei tu: pe fața ta, în gură, pe fund sau să mă înghiți de tot.", pret: 2 },
-    { id: 230, titlu: "Body Marking", desc: "Ai voie să mă muști, să mă zgârii și să mă însemnezi ca pe proprietatea ta. Sunt al tău.", pret: 15 }
+    // --- Sclavie & Supunere ---
+    { id: 226, titlu: "Sclavul de sub Birou", desc: "Stau în genunchi la picioarele tale și te ling în timp ce tu mă ignori.", pret: 10 },
+    { id: 227, titlu: "Human Dildo", desc: "Mă transform în vibratorul tău. Tu te urci pe mine și mă folosești cum vrei.", pret: 7 },
+    { id: 228, titlu: "Pizd* Licker Non-Stop", desc: "Mă pui să te ling până îmi amorțește fața și tu ai terminat de 5 ori.", pret: 7 },
+    { id: 229, titlu: "Găleata de Spermă", desc: "Mă obligi să termin unde vrei tu: pe fața ta, în gură sau să înghiți.", pret: 2 },
+    { id: 230, titlu: "Body Marking", desc: "Ai voie să mă muști și să mă zgârii. Sunt al tău.", pret: 15 }
 ];
+
 
 
 
@@ -1373,30 +1389,43 @@ function renderGrid(containerId, items, currentPoints) {
     const container = document.getElementById(containerId);
     const sectionType = containerId.split('-')[0];
     
-    // În timpul căutării (searchTerm activ), isExpanded este mereu true
     const isSearching = searchTerm.length > 0;
     const isExpanded = expanded[sectionType] || isSearching;
-    
     const itemsToShow = isExpanded ? items : items.slice(0, 2);
     
-    container.innerHTML = itemsToShow.map(item => `
-        <div class="glass-card">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:15px;">
-                <h3 style="margin:0; font-size:1.1rem; line-height:1.2;">${item.titlu}</h3>
-                <span class="price-tag">${item.pret} CR</span>
+    container.innerHTML = itemsToShow.map(item => {
+        const isFree = item.pret === 0;
+        const isSpecial = item.special === true;
+        
+        // Stil special pentru "Sex Time"
+        const specialStyle = isSpecial ? `
+            background: linear-gradient(145deg, rgba(255, 77, 109, 0.15), rgba(116, 0, 184, 0.15));
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 20px rgba(255, 77, 109, 0.2);
+            animation: pulse-special 2s infinite;
+        ` : '';
+
+        return `
+            <div class="glass-card" style="${specialStyle} ${isFree && !isSpecial ? 'border-color: rgba(0, 212, 255, 0.3);' : ''}">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:15px;">
+                    <h3 style="margin:0; font-size:1.1rem; line-height:1.2; ${isSpecial ? 'color: #ff4d6d; text-shadow: 0 0 10px rgba(255,77,109,0.5);' : ''}">${item.titlu}</h3>
+                    <span class="price-tag" style="${isSpecial ? 'background: var(--accent); color: white;' : (isFree ? 'background: rgba(0, 212, 255, 0.1); color: #00d4ff;' : '')}">
+                        ${isSpecial ? 'NOW' : (isFree ? 'NOW' : item.pret + ' CR')}
+                    </span>
+                </div>
+                <p style="font-size:0.85rem; opacity:0.8; line-height:1.5; margin:0; ${isSpecial ? 'font-weight: 600;' : ''}">${item.desc}</p>
+                <button class="btn-glass" 
+                    ${currentPoints < item.pret ? 'disabled' : ''} 
+                    onclick="buy('${item.titlu.replace(/'/g, "\\'")}', ${item.pret})"
+                    style="${isSpecial ? 'background: var(--accent); border: none; margin-top: 20px;' : (isFree ? 'border-color: rgba(0, 212, 255, 0.5);' : '')}">
+                    ${isSpecial ? 'VREAU ACUM 💋' : (isFree ? 'Cere acum ✨' : 'Redeem')}
+                </button>
             </div>
-            <p style="font-size:0.85rem; opacity:0.6; line-height:1.5; margin:0;">${item.desc}</p>
-            <button class="btn-glass" 
-                ${currentPoints < item.pret ? 'disabled' : ''} 
-                onclick="buy('${item.titlu}', ${item.pret})">
-                ${currentPoints < item.pret ? 'Insuficient' : 'Redeem'}
-            </button>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 
     const btnMore = document.getElementById(`btn-more-${sectionType}`);
     if (btnMore) {
-        // Ascundem butonul "Vezi tot" dacă suntem în mod căutare
         if (isSearching || items.length <= 2) {
             btnMore.style.display = 'none';
         } else {
@@ -1405,6 +1434,8 @@ function renderGrid(containerId, items, currentPoints) {
         }
     }
 }
+
+
 
 
 async function buy(title, price) {
