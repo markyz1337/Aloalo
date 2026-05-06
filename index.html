@@ -499,10 +499,128 @@
 }
 
 
+/* Containerul Principal - Buton Reset Circular */
+#reset-circle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    z-index: 999999 !important; /* Prioritate maximă peste orice element */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* Design Glassmorphism */
+    background: rgba(25, 25, 30, 0.6);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    
+    /* Culoare Iconiță (Rozul tău de accent) */
+    color: rgba(255, 179, 193, 0.9);
+    
+    /* FIX PENTRU REACȚIE INSTANTANEE */
+    cursor: pointer;
+    touch-action: manipulation; /* Ignoră gesturile de scroll pe acest element */
+    user-select: none; /* Previne selectarea textului la apăsări rapide */
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent; /* Elimină flash-ul gri de sistem la atingere */
+    
+    /* Tranziție lină pentru revenirea din starea de glow */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* Iconița SVG */
+#reset-circle svg {
+    display: block;
+    pointer-events: none; /* Asigură că atingerea trece prin SVG direct la container */
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* EFECTUL DE GLOW (Activat prin JS timp de 1 secundă) */
+.glow-active {
+    background: var(--accent) !important; /* Roz plin la apăsare */
+    color: white !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 0 30px var(--accent-glow), 0 0 10px var(--accent) !important;
+    transform: scale(1.1);
+}
+
+/* Rotația iconiței în timpul strălucirii */
+.glow-active svg {
+    transform: rotate(-180deg);
+}
+
+/* COMPORTAMENT DESKTOP (Hover) */
+@media (hover: hover) {
+    #reset-circle:hover:not(.glow-active) {
+        background: rgba(255, 255, 255, 0.15);
+        color: #ffffff;
+        border-color: var(--accent);
+        transform: translateY(-2px);
+    }
+    
+    #reset-circle:hover svg {
+        transform: rotate(-45deg);
+    }
+}
+
+/* FEEDBACK INSTANT LA APĂSARE (Atingere Fizică) */
+#reset-circle:active {
+    transform: scale(0.9);
+    transition: 0.1s;
+}
+
+/* ADAPTARE MOBIL (Deasupra HUD-ului cu credite) */
+@media (max-width: 600px) {
+    #reset-circle {
+        top: auto;
+        bottom: 85px; /* Aliniat perfect deasupra capsulei HUD din josul paginii */
+        right: 20px;
+        width: 46px;
+        height: 46px;
+        /* Opacitate mai mare pe mobil pentru a nu se pierde în fundalul paginii */
+        background: rgba(15, 15, 20, 0.85);
+    }
+}
+
+
+.hidden-reset {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: scale(0.8) !important;
+}
+
+
+
+
+
+
+
+
+
 
     </style>
 </head>
 <body>
+
+
+<div id="reset-circle" onpointerdown="resetApp()" title="Resetare">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 4v6h-6"></path>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+    </svg>
+</div>
+
+
+
+
+
+
+
 
 
 <div id="custom-prompt">
@@ -834,6 +952,67 @@ const MENIU_PRIVAT = [
 ];
 
 
+function resetApp(event) {
+    // 1. Prevenim propagarea evenimentului pentru a opri scroll-ul paginii
+    if (event) {
+        if (typeof event.preventDefault === 'function') event.preventDefault();
+        if (typeof event.stopPropagation === 'function') event.stopPropagation();
+    }
+
+    // 2. Eliminăm selecția vizuală (focus) și închidem tastatura
+    document.activeElement.blur();
+
+    const btn = document.getElementById('reset-circle');
+    
+    // 3. Activăm Glow-ul pentru 1 secundă
+    if (btn) btn.classList.add('glow-active');
+
+    // 4. RESETARE LOGICĂ VAULT PRIVAT (Blocare)
+    const overlay = document.getElementById('private-lock-overlay');
+    const privateGrid = document.getElementById('private-grid');
+    if (overlay) overlay.style.display = 'block'; 
+    if (privateGrid) privateGrid.style.display = 'none'; 
+
+    // 5. RESETARE CĂUTARE
+    searchTerm = "";
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) searchInput.value = "";
+    
+    const clearBtn = document.getElementById('clear-search');
+    if (clearBtn) {
+        clearBtn.style.opacity = "0";
+        clearBtn.style.pointerEvents = "none";
+    }
+
+    // 6. RESTRÂNGERE CARDURI (Revenire la 2 elemente)
+    expanded.public = false;
+    expanded.private = false;
+
+    // 7. ACTUALIZARE INTERFAȚĂ
+    loadData();
+
+    // 8. SCROLL OPTIMIZAT
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 50);
+    });
+
+    // 9. DEZACTIVARE GLOW DUPĂ 1 SECUNDĂ
+    setTimeout(() => {
+        if (btn) btn.classList.remove('glow-active');
+    }, 1000);
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1053,11 +1232,44 @@ function toggleRadio() {
 
 let currentPin = "";
 
+
+
+// 1. Funcția care închide modalul și ARATĂ butonul de reset
+function closeSecretModal() {
+    // Închidem fereastra de PIN
+    document.getElementById('custom-prompt').style.display = 'none';
+    
+    // Resetăm codul introdus (ca să nu rămână bulinele pline data viitoare)
+    currentPin = "";
+    updatePinDisplay();
+    
+    // FACEM BUTONUL ROZ SĂ REAPARĂ
+    toggleResetButton(true);
+}
+
+// 2. Funcția care se asigură că butonul primește clasa corectă
+function toggleResetButton(show) {
+    const resetBtn = document.getElementById('reset-circle');
+    if (!resetBtn) return;
+
+    if (show) {
+        resetBtn.classList.remove('hidden-reset');
+    } else {
+        resetBtn.classList.add('hidden-reset');
+    }
+}
+
+
 function unlockPrivate() {
-    currentPin = ""; // Resetăm PIN-ul
+    currentPin = ""; 
     updatePinDisplay();
     document.getElementById('custom-prompt').style.display = 'block';
+    
+    // Ascundem butonul de reset (ID-ul corect: reset-circle)
+    toggleResetButton(false); 
 }
+
+
 
 function pressKey(num, e) {
     if (e) e.preventDefault(); // Oprește orice lag de sistem
@@ -1105,7 +1317,11 @@ function updatePinDisplay() {
 
 function unlockSuccess() {
     document.getElementById('custom-prompt').style.display = 'none';
-    const overlay = document.querySelector('.locked-overlay');
+    
+    // Reafișăm butonul de reset
+    toggleResetButton(true);
+
+    const overlay = document.getElementById('private-lock-overlay');
     const privateGrid = document.getElementById('private-grid');
     
     if(overlay) overlay.style.display = 'none';
@@ -1114,6 +1330,23 @@ function unlockSuccess() {
         loadData();
     }
 }
+
+
+
+function toggleResetButton(show) {
+    const resetBtn = document.getElementById('reset-circle');
+    if (!resetBtn) return;
+
+    if (show) {
+        // Elimină clasa care dă opacity 0
+        resetBtn.classList.remove('hidden-reset');
+    } else {
+        // Adaugă clasa care ascunde butonul
+        resetBtn.classList.add('hidden-reset');
+    }
+}
+
+
 
 
 
@@ -1410,7 +1643,7 @@ function renderGrid(containerId, items, currentPoints) {
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:15px;">
                     <h3 style="margin:0; font-size:1.1rem; line-height:1.2; ${isSpecial ? 'color: #ff4d6d; text-shadow: 0 0 10px rgba(255,77,109,0.5);' : ''}">${item.titlu}</h3>
                     <span class="price-tag" style="${isSpecial ? 'background: var(--accent); color: white;' : (isFree ? 'background: rgba(0, 212, 255, 0.1); color: #00d4ff;' : '')}">
-                        ${isSpecial ? 'NOW' : (isFree ? '0 CR' : item.pret + ' CR')}
+                        ${isSpecial ? 'NOW' : (isFree ? 'FREE' : item.pret + ' CR')}
                     </span>
                 </div>
                 <p style="font-size:0.85rem; opacity:0.8; line-height:1.5; margin:0; ${isSpecial ? 'font-weight: 600;' : ''}">${item.desc}</p>
@@ -1506,9 +1739,7 @@ async function buy(title, price) {
 
 
 
-function closeSecretModal() {
-    document.getElementById('custom-prompt').style.display = 'none';
-}
+
 
 
         loadData();
