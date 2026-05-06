@@ -718,18 +718,6 @@
 
 
 
-<!-- MODAL SELECȚIE OPȚIUNI -->
-<div id="selection-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 10000; justify-content: center; align-items: center; display: none;">
-    <div class="glass-card" style="width: 280px; padding: 30px; text-align: center; border-color: var(--accent); margin: auto;">        <span class="pin-label" style="color: var(--accent); margin-bottom: 10px; display: block;">Alegere Răsfăț</span>
-        <h2 id="selection-title" style="margin: 0 0 20px 0; font-size: 1.2rem;">Ce dorești să bei?</h2>
-        
-        <div id="options-container" style="display: grid; gap: 10px; margin-bottom: 20px;">
-            <!-- Butoanele cu opțiuni vor fi injectate aici -->
-        </div>
-
-        <button class="btn-glass" onclick="closeSelectionModal()" style="border: none; opacity: 0.6; font-size: 0.7rem;">Anulează</button>
-    </div>
-</div>
 
 
 
@@ -1562,8 +1550,6 @@ async function loadData() {
 
 
 function renderUI(userData) {
-    if (!userData) return;
-    
     const balanceElem = document.getElementById('balance');
     const streakElem = document.getElementById('streak-val');
     if (balanceElem) balanceElem.innerText = userData.points;
@@ -1578,26 +1564,27 @@ function renderUI(userData) {
 
     if (searchTerm.length > 0) {
         publicLabel.innerText = "Rezultate Căutare";
-        if (privateLabel) privateLabel.style.display = "none";
-        if (privateSection) privateSection.style.display = "none";
+        privateLabel.style.display = "none";
+        privateSection.style.display = "none";
 
         let combinedMenu = [...MENIU_PUBLIC];
         if (isPrivateUnlocked) {
             combinedMenu = [...combinedMenu, ...MENIU_PRIVAT];
         }
 
-        const filtered = combinedMenu.filter(item => 
+        // Aplicăm filtrarea ȘI sortarea inteligentă aici
+        const filteredItems = getSortedItems(combinedMenu, userData.points).filter(item => 
             item.titlu.toLowerCase().includes(searchTerm) || 
             item.desc.toLowerCase().includes(searchTerm)
         );
 
-        const sortedFiltered = getSortedItems(filtered, userData.points);
-        renderGrid('public-grid', sortedFiltered, userData.points);
+        renderGrid('public-grid', filteredItems, userData.points);
     } else {
         publicLabel.innerText = "Public Rewards";
-        if (privateLabel) privateLabel.style.display = "block";
-        if (privateSection) privateSection.style.display = "block";
+        privateLabel.style.display = "block";
+        privateSection.style.display = "block";
 
+        // Sortăm listele separat înainte de randare
         const sortedPublic = getSortedItems(MENIU_PUBLIC, userData.points);
         renderGrid('public-grid', sortedPublic, userData.points);
 
@@ -1609,8 +1596,6 @@ function renderUI(userData) {
 
     renderHistory(userData, isPrivateUnlocked);
 }
-
-
 
 
 // Am extras logica de istoric într-o funcție separată pentru curățenie
@@ -1644,9 +1629,8 @@ function renderHistory(userData, isPrivateUnlocked) {
 
 function renderGrid(containerId, items, currentPoints) {
     const container = document.getElementById(containerId);
-    if (!container) return;
-    
     const sectionType = containerId.split('-')[0];
+    
     const isSearching = searchTerm.length > 0;
     const isExpanded = expanded[sectionType] || isSearching;
     const itemsToShow = isExpanded ? items : items.slice(0, 2);
@@ -1655,10 +1639,11 @@ function renderGrid(containerId, items, currentPoints) {
         const isFree = item.pret === 0;
         const isSpecial = item.special === true;
         
-        // REPARARE CHEIE: Securizăm JSON-ul pentru HTML
+        // Pregătim opțiunile pentru a fi trimise ca argument în funcția buy
+        // Dacă item-ul are opțiuni, le transformăm în string JSON sigur pentru HTML
         const optionsJson = item.options ? JSON.stringify(item.options).replace(/"/g, '&quot;') : 'null';
-        const safeTitle = item.titlu.replace(/'/g, "\\'");
-
+        
+        // Stil special pentru cardurile tip "Glow" sau "Sex Time"
         const specialStyle = isSpecial ? `
             background: linear-gradient(145deg, rgba(255, 77, 109, 0.15), rgba(116, 0, 184, 0.15));
             border: 1px solid var(--accent);
@@ -1669,25 +1654,29 @@ function renderGrid(containerId, items, currentPoints) {
         return `
             <div class="glass-card" style="${specialStyle} ${isFree && !isSpecial ? 'border-color: rgba(0, 212, 255, 0.3);' : ''}">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:15px;">
-                    <h3 style="margin:0; font-size:1.1rem; line-height:1.2; ${isSpecial ? 'color: #ff4d6d;' : ''}">${item.titlu}</h3>
-                    <span class="price-tag">
+                    <h3 style="margin:0; font-size:1.1rem; line-height:1.2; ${isSpecial ? 'color: #ff4d6d; text-shadow: 0 0 10px rgba(255,77,109,0.5);' : ''}">${item.titlu}</h3>
+                    <span class="price-tag" style="${isSpecial ? 'background: var(--accent); color: white;' : (isFree ? 'background: rgba(0, 212, 255, 0.1); color: #00d4ff;' : '')}">
                         ${isSpecial ? 'NOW' : (isFree ? 'FREE' : item.pret + ' CR')}
                     </span>
                 </div>
-                <p style="font-size:0.85rem; opacity:0.8; line-height:1.5; margin:0;">${item.desc}</p>
+                <p style="font-size:0.85rem; opacity:0.8; line-height:1.5; margin:0; ${isSpecial ? 'font-weight: 600;' : ''}">${item.desc}</p>
                 <button class="btn-glass" 
                     ${currentPoints < item.pret ? 'disabled' : ''} 
-                    onclick="buy('${safeTitle}', ${item.pret}, ${optionsJson})">
+                    onclick="buy('${item.titlu.replace(/'/g, "\\'")}', ${item.pret}, ${optionsJson})"
+                    style="${isSpecial ? 'background: var(--accent); border: none; margin-top: 20px;' : (isFree ? 'border-color: rgba(0, 212, 255, 0.5);' : '')}">
                     ${isSpecial ? 'VREAU ACUM 💋' : (isFree ? 'Cere acum ✨' : 'Redeem')}
                 </button>
             </div>
         `;
     }).join('');
 
+    // Gestionarea butonului "Vezi tot"
     const btnMore = document.getElementById(`btn-more-${sectionType}`);
     if (btnMore) {
-        btnMore.style.display = (isSearching || items.length <= 2) ? 'none' : 'block';
-        if (btnMore.style.display === 'block') {
+        if (isSearching || items.length <= 2) {
+            btnMore.style.display = 'none';
+        } else {
+            btnMore.style.display = 'block';
             btnMore.innerText = isExpanded ? "Arată mai puține" : `Vezi tot (+${items.length - 2})`;
         }
     }
@@ -1697,84 +1686,32 @@ function renderGrid(containerId, items, currentPoints) {
 
 
 
-
-
-// --- CONFIGURARE TELEGRAM ---
-const botToken = "8665700807:AAGUePmZoK7Oo83QdFPJWUmpv-EjOMG9A-A";
-const chatId = "976748886";
-
-async function sendTelegramNotification(title, descriere, price, newPoints) {
-    const mesaj = 
-        `❤️ *A ales:* ${title}\n` +
-        `📝 *Descriere:* _${descriere}_\n\n` +
-        `💰 *Preț:* ${price} credite\n` +
-        `✨ *Balanță nouă:* ${newPoints} credite\n\n\n` +
-        `xxxxxxxxxxxxxxxxxxxxxx\n\n\n`;
-
-    try {
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: chatId,
-                text: mesaj,
-                parse_mode: 'Markdown'
-            })
-        });
-    } catch (e) {
-        console.error("Eroare Telegram:", e);
-    }
-}
-
-let pendingPurchase = null; 
-
-// --- MODIFICARE: Adăugăm descrierea în obiectul temporar ---
-async function buy(title, price, descriere, options = null) {
-    if (options && Array.isArray(options) && options.length > 0) {
-        pendingPurchase = { title, price, descriere }; 
-        openSelectionModal(title, options);
-        return;
-    }
-    executePurchase(title, price, descriere);
-}
-
-function openSelectionModal(title, options) {
-    const modal = document.getElementById('selection-modal');
-    const container = document.getElementById('options-container');
+async function buy(title, price, options = null) {
+    let finalTitle = title;
     
-    container.innerHTML = options.map(opt => `
-        <button class="btn-glass" style="margin: 0; background: rgba(255,255,255,0.05);" 
-            onclick="confirmSelection('${opt.replace(/'/g, "\\'")}')">
-            ${opt}
-        </button>
-    `).join('');
+    // 1. LOGICĂ SELECȚIE (Ex: Ceai sau Cafea)
+    // Apare prompt-ul de alegere înainte de orice altceva
+    if (options && options.length > 0) {
+        const alegere = prompt(`Ce dorești să alegi? (${options.join(' / ')})`, options[0]);
+        
+        // Dacă utilizatorul apasă "Cancel", oprim procesul
+        if (alegere === null) return;
+        
+        // Verificăm dacă ce a scris se potrivește cu opțiunile, altfel luăm exact ce a scris
+        const optiuneValida = options.find(o => o.toLowerCase() === alegere.toLowerCase()) || alegere;
+        finalTitle = `${title} (${optiuneValida})`;
+    }
 
-    document.getElementById('selection-title').innerText = "Alege varianta:";
-    modal.style.display = 'flex';
-}
-
-function confirmSelection(choice) {
-    const finalTitle = `${pendingPurchase.title} (${choice})`;
-    const desc = pendingPurchase.descriere;
-    const prc = pendingPurchase.price;
-    closeSelectionModal();
-    executePurchase(finalTitle, prc, desc);
-}
-
-function closeSelectionModal() {
-    document.getElementById('selection-modal').style.display = 'none';
-    pendingPurchase = null;
-}
-
-// --- PROCESAREA FINALĂ ---
-async function executePurchase(finalTitle, price, descriere = "Fără descriere") {
+    // 2. MOD TESTARE (Fără API / CORS)
     if (!USE_API) {
-        alert(`✨ [MOD TESTARE]\nBeneficiu: ${finalTitle}\nCost: ${price}`);
+        alert(`[MOD TESTARE]\nBeneficiu: ${finalTitle}\nCost: ${price} credite\n\nActivează USE_API pe GitHub pentru salvare reală.`);
         return;
     }
 
+    // 3. CONFIRMARE FINALĂ
     if (!confirm(`Confirmi folosirea a ${price} credite pentru "${finalTitle}"?`)) return;
 
+    // 4. LOGICĂ SUPABASE
     try {
         let { data, error: fetchError } = await _supabase
             .from('users_data')
@@ -1786,32 +1723,54 @@ async function executePurchase(finalTitle, price, descriere = "Fără descriere"
 
         if (data.points >= price) {
             const newPoints = data.points - price;
-            const dataRo = new Date().toLocaleDateString('ro-RO');
-            const newHistory = [`${finalTitle} (${dataRo})`, ...data.history].slice(0, 10);
+            // Adăugăm în istoric titlul final (care include și opțiunea aleasă)
+            const newHistory = [`${finalTitle} (${new Date().toLocaleDateString('ro-RO')})`, ...data.history];
 
             const { error: updateError } = await _supabase
                 .from('users_data')
-                .update({ points: newPoints, history: newHistory })
+                .update({ 
+                    points: newPoints, 
+                    history: newHistory.slice(0, 5) 
+                })
                 .eq('id', USER_ID);
 
             if (updateError) throw updateError;
 
-            // TRIMITERE NOTIFICARE CU DATELE CERUTE
-            await sendTelegramNotification(finalTitle, descriere, price, newPoints);
+            // 5. NOTIFICARE TELEGRAM
+            const toateBeneficiile = [...MENIU_PUBLIC, ...MENIU_PRIVAT];
+            const beneficiuOriginal = toateBeneficiile.find(b => b.titlu === title);
+            const descriere = beneficiuOriginal ? beneficiuOriginal.desc : "Fără descriere";
+
+            const botToken = "8665700807:AAGUePmZoK7Oo83QdFPJWUmpv-EjOMG9A-A";
+            const chatId = "976748886";
+            
+            const mesaj = 
+                `❤️ *A ales:* ${finalTitle}\n` +
+                `📝 *Descriere:* _${descriere}_\n\n` +
+                `💰 *Preț:* ${price} credite\n` +
+                `✨ *Balanță nouă:* ${newPoints} credite\n\n` +
+                `xxxxxxxxxxxxxxxxxxxxxx`;
+
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: mesaj,
+                    parse_mode: "Markdown"
+                })
+            }).catch(err => console.error("Eroare Telegram:", err));
 
             alert("🎉 Felicitări! Ai deblocat: " + finalTitle);
-            loadData(); 
+            loadData(); // Reîncărcăm datele pentru a actualiza interfața
         } else {
-            alert("Nu ai destule credite! ✨");
+            alert("Nu ai destule credite! ⚡");
         }
     } catch (err) {
-        console.error("Eroare:", err);
-        alert("Eroare la procesare.");
+        console.error("Eroare sistem:", err);
+        alert("A apărut o eroare la procesare. Verifică conexiunea sau consola.");
     }
 }
-
-
-
 
 
 
