@@ -1252,22 +1252,30 @@ function toggleRadio() {
     const pauseIcon = document.getElementById('p-pause');
 
     if (audio.paused) {
-        // RESETAREA: Setează timpul la 0 înainte de a porni
+        // RESET & PLAY (Ca și cum ai intra acum pe pagină)
         audio.currentTime = 0; 
-        
         audio.play();
+        
         indicator.classList.remove('radio-off');
         indicator.classList.add('radio-on');
         playIcon.style.display = 'none';
         pauseIcon.style.display = 'block';
     } else {
+        // STOP COMPLET & RESET
         audio.pause();
+        audio.currentTime = 0; // Duce melodia la secunda zero
+        
+        // Opțional: Această linie "descarcă" piesa din memorie temporar
+        // pentru a simula reîncărcarea completă de la zero la următorul play
+        audio.load(); 
+
         indicator.classList.remove('radio-on');
         indicator.classList.add('radio-off');
         playIcon.style.display = 'block';
         pauseIcon.style.display = 'none';
     }
 }
+
 
 
 
