@@ -1006,6 +1006,7 @@ function resetApp(event) {
     // 1. RESETARE LOGICĂ VAULT PRIVAT (Blocare)
     const overlay = document.getElementById('private-lock-overlay');
     const privateGrid = document.getElementById('private-grid');
+    if (overlay) overlay.style.display = 'none'; // Opțional, ascundem grid-ul direct
     if (overlay) overlay.style.display = 'block'; 
     if (privateGrid) privateGrid.style.display = 'none'; 
 
@@ -1020,30 +1021,28 @@ function resetApp(event) {
         clearBtn.style.pointerEvents = "none";
     }
 
-    // 3. RESTRÂNGERE CARDURI (Aici am reparat logica)
+    // 3. RESTRÂNGERE CARDURI (Resetăm starea de extindere)
     expanded.public = false;
     expanded.private = false;
 
-    // Resetăm vizual textul butoanelor înainte de re-randare
-    const btnPub = document.getElementById('btn-more-public');
-    const btnPriv = document.getElementById('btn-more-private');
-    if (btnPub) btnPub.style.display = 'none'; 
-    if (btnPriv) btnPriv.style.display = 'none';
-
-    // 4. ACTUALIZARE INTERFAȚĂ
+    // 4. ACTUALIZARE INTERFAȚĂ (Randăm varianta scurtă)
     loadData();
 
-    // 5. SCROLL ȘI EFECTE
-    requestAnimationFrame(() => {
-        setTimeout(() => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 50);
-    });
+    // 5. SCROLL FIX (Forțăm scroll-ul după ce DOM-ul s-a curățat)
+    // Folosim o întârziere mică pentru a lăsa browserul să scurteze pagina
+    setTimeout(() => {
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: 'smooth'
+        });
+    }, 100); // 100ms sunt suficiente pentru recalcularea layout-ului
 
     setTimeout(() => {
         if (btn) btn.classList.remove('glow-active');
     }, 1000);
 }
+
 
 
 
