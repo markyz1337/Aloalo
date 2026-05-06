@@ -1576,27 +1576,28 @@ function renderUI(userData) {
 
     if (searchTerm.length > 0) {
         publicLabel.innerText = "Rezultate Căutare";
-        privateLabel.style.display = "none";
-        privateSection.style.display = "none";
+        if (privateLabel) privateLabel.style.display = "none";
+        if (privateSection) privateSection.style.display = "none";
 
         let combinedMenu = [...MENIU_PUBLIC];
         if (isPrivateUnlocked) {
             combinedMenu = [...combinedMenu, ...MENIU_PRIVAT];
         }
 
-        // Aplicăm filtrarea ȘI sortarea inteligentă aici
-        const filteredItems = getSortedItems(combinedMenu, userData.points).filter(item => 
+        // Filtrare bazată pe termenul de căutare
+        const filtered = combinedMenu.filter(item => 
             item.titlu.toLowerCase().includes(searchTerm) || 
             item.desc.toLowerCase().includes(searchTerm)
         );
 
-        renderGrid('public-grid', filteredItems, userData.points);
+        // Sortare inteligentă (cele accesibile primele)
+        const sortedFiltered = getSortedItems(filtered, userData.points);
+        renderGrid('public-grid', sortedFiltered, userData.points);
     } else {
         publicLabel.innerText = "Public Rewards";
-        privateLabel.style.display = "block";
-        privateSection.style.display = "block";
+        if (privateLabel) privateLabel.style.display = "block";
+        if (privateSection) privateSection.style.display = "block";
 
-        // Sortăm listele separat înainte de randare
         const sortedPublic = getSortedItems(MENIU_PUBLIC, userData.points);
         renderGrid('public-grid', sortedPublic, userData.points);
 
@@ -1608,6 +1609,7 @@ function renderUI(userData) {
 
     renderHistory(userData, isPrivateUnlocked);
 }
+
 
 
 // Am extras logica de istoric într-o funcție separată pentru curățenie
@@ -1641,8 +1643,9 @@ function renderHistory(userData, isPrivateUnlocked) {
 
 function renderGrid(containerId, items, currentPoints) {
     const container = document.getElementById(containerId);
-    const sectionType = containerId.split('-')[0];
+    if (!container) return;
     
+    const sectionType = containerId.split('-')[0];
     const isSearching = searchTerm.length > 0;
     const isExpanded = expanded[sectionType] || isSearching;
     const itemsToShow = isExpanded ? items : items.slice(0, 2);
@@ -1650,12 +1653,9 @@ function renderGrid(containerId, items, currentPoints) {
     container.innerHTML = itemsToShow.map(item => {
         const isFree = item.pret === 0;
         const isSpecial = item.special === true;
-        
-        // Pregătim opțiunile pentru a fi trimise ca argument în funcția buy
-        // Dacă item-ul are opțiuni, le transformăm în string JSON sigur pentru HTML
         const optionsJson = item.options ? JSON.stringify(item.options).replace(/"/g, '&quot;') : 'null';
-        
-        // Stil special pentru cardurile tip "Glow" sau "Sex Time"
+        const safeTitle = item.titlu.replace(/'/g, "\\'");
+
         const specialStyle = isSpecial ? `
             background: linear-gradient(145deg, rgba(255, 77, 109, 0.15), rgba(116, 0, 184, 0.15));
             border: 1px solid var(--accent);
@@ -1666,33 +1666,30 @@ function renderGrid(containerId, items, currentPoints) {
         return `
             <div class="glass-card" style="${specialStyle} ${isFree && !isSpecial ? 'border-color: rgba(0, 212, 255, 0.3);' : ''}">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:15px;">
-                    <h3 style="margin:0; font-size:1.1rem; line-height:1.2; ${isSpecial ? 'color: #ff4d6d; text-shadow: 0 0 10px rgba(255,77,109,0.5);' : ''}">${item.titlu}</h3>
-                    <span class="price-tag" style="${isSpecial ? 'background: var(--accent); color: white;' : (isFree ? 'background: rgba(0, 212, 255, 0.1); color: #00d4ff;' : '')}">
+                    <h3 style="margin:0; font-size:1.1rem; line-height:1.2; ${isSpecial ? 'color: #ff4d6d;' : ''}">${item.titlu}</h3>
+                    <span class="price-tag">
                         ${isSpecial ? 'NOW' : (isFree ? 'FREE' : item.pret + ' CR')}
                     </span>
                 </div>
-                <p style="font-size:0.85rem; opacity:0.8; line-height:1.5; margin:0; ${isSpecial ? 'font-weight: 600;' : ''}">${item.desc}</p>
+                <p style="font-size:0.85rem; opacity:0.8; line-height:1.5; margin:0;">${item.desc}</p>
                 <button class="btn-glass" 
                     ${currentPoints < item.pret ? 'disabled' : ''} 
-                    onclick="buy('${item.titlu.replace(/'/g, "\\'")}', ${item.pret}, ${optionsJson})"
-                    style="${isSpecial ? 'background: var(--accent); border: none; margin-top: 20px;' : (isFree ? 'border-color: rgba(0, 212, 255, 0.5);' : '')}">
+                    onclick="buy('${safeTitle}', ${item.pret}, ${optionsJson})">
                     ${isSpecial ? 'VREAU ACUM 💋' : (isFree ? 'Cere acum ✨' : 'Redeem')}
                 </button>
             </div>
         `;
     }).join('');
 
-    // Gestionarea butonului "Vezi tot"
     const btnMore = document.getElementById(`btn-more-${sectionType}`);
     if (btnMore) {
-        if (isSearching || items.length <= 2) {
-            btnMore.style.display = 'none';
-        } else {
-            btnMore.style.display = 'block';
+        btnMore.style.display = (isSearching || items.length <= 2) ? 'none' : 'block';
+        if (btnMore.style.display === 'block') {
             btnMore.innerText = isExpanded ? "Arată mai puține" : `Vezi tot (+${items.length - 2})`;
         }
     }
 }
+
 
 
 
