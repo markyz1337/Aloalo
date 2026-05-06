@@ -718,6 +718,18 @@
 
 
 
+<!-- MODAL SELECȚIE OPȚIUNI -->
+<div id="selection-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 10000; justify-content: center; align-items: center; display: none;">
+    <div class="glass-card" style="width: 280px; padding: 30px; text-align: center; border-color: var(--accent); margin: auto;">        <span class="pin-label" style="color: var(--accent); margin-bottom: 10px; display: block;">Alegere Răsfăț</span>
+        <h2 id="selection-title" style="margin: 0 0 20px 0; font-size: 1.2rem;">Ce dorești să bei?</h2>
+        
+        <div id="options-container" style="display: grid; gap: 10px; margin-bottom: 20px;">
+            <!-- Butoanele cu opțiuni vor fi injectate aici -->
+        </div>
+
+        <button class="btn-glass" onclick="closeSelectionModal()" style="border: none; opacity: 0.6; font-size: 0.7rem;">Anulează</button>
+    </div>
+</div>
 
 
 
@@ -1600,6 +1612,7 @@ function renderUI(userData) {
 
 
 
+
 // Am extras logica de istoric într-o funcție separată pentru curățenie
 function renderHistory(userData, isPrivateUnlocked) {
     const historyContainer = document.getElementById('history-list');
@@ -1685,33 +1698,65 @@ function renderGrid(containerId, items, currentPoints) {
 
 
 
+
+let pendingPurchase = null; // Stocăm temporar datele când se deschide modalul de opțiuni
+
+// --- FUNCȚIA PRINCIPALĂ DE LANSARE ---
 async function buy(title, price, options = null) {
-    let finalTitle = title;
-    
-    // 1. LOGICĂ SELECȚIE (Ex: Ceai sau Cafea)
-    // Apare prompt-ul de alegere înainte de orice altceva
-    if (options && options.length > 0) {
-        const alegere = prompt(`Ce dorești să alegi? (${options.join(' / ')})`, options[0]);
-        
-        // Dacă utilizatorul apasă "Cancel", oprim procesul
-        if (alegere === null) return;
-        
-        // Verificăm dacă ce a scris se potrivește cu opțiunile, altfel luăm exact ce a scris
-        const optiuneValida = options.find(o => o.toLowerCase() === alegere.toLowerCase()) || alegere;
-        finalTitle = `${title} (${optiuneValida})`;
+    // 1. Verificăm dacă produsul are opțiuni (ex: Cafea, Ceai...)
+    if (options && Array.isArray(options) && options.length > 0) {
+        pendingPurchase = { title, price }; 
+        openSelectionModal(title, options);
+        return; // Oprim execuția până când utilizatorul alege din modal
     }
 
-    // 2. MOD TESTARE (Fără API / CORS)
+    // 2. Dacă nu are opțiuni, procesăm direct achiziția
+    executePurchase(title, price);
+}
+
+// --- LOGICA DE DESCHIDERE MODAL OPȚIUNI ---
+function openSelectionModal(title, options) {
+    const modal = document.getElementById('selection-modal');
+    const container = document.getElementById('options-container');
+    
+    // Resetăm și populăm containerul cu butoane pentru fiecare opțiune
+    container.innerHTML = options.map(opt => `
+        <button class="btn-glass" style="margin: 0; background: rgba(255,255,255,0.05);" 
+            onclick="confirmSelection('${opt.replace(/'/g, "\\'")}')">
+            ${opt}
+        </button>
+    `).join('');
+
+    document.getElementById('selection-title').innerText = "Alege varianta:";
+    modal.style.display = 'flex'; // Afișăm modalul
+}
+
+// --- CONFIRMAREA DIN MODAL ---
+function confirmSelection(choice) {
+    const finalTitle = `${pendingPurchase.title} (${choice})`;
+    closeSelectionModal();
+    executePurchase(finalTitle, pendingPurchase.price);
+}
+
+// --- ÎNCHIDERE MODAL ---
+function closeSelectionModal() {
+    document.getElementById('selection-modal').style.display = 'none';
+    pendingPurchase = null;
+}
+
+// --- PROCESAREA FINALĂ (TESTARE + REALĂ) ---
+async function executePurchase(finalTitle, price) {
+    // A. LOGICA PENTRU MODUL TESTARE
     if (!USE_API) {
-        alert(`[MOD TESTARE]\nBeneficiu: ${finalTitle}\nCost: ${price} credite\n\nActivează USE_API pe GitHub pentru salvare reală.`);
+        alert(`✨ [MOD TESTARE ACTIV]\n\nBeneficiu: ${finalTitle}\nCost: ${price} credite\n\nNotă: În varianta Live, punctele ar fi fost scăzute și mesajul trimis pe Telegram.`);
         return;
     }
 
-    // 3. CONFIRMARE FINALĂ
+    // B. LOGICA PENTRU MODUL REAL (SUPABASE)
     if (!confirm(`Confirmi folosirea a ${price} credite pentru "${finalTitle}"?`)) return;
 
-    // 4. LOGICĂ SUPABASE
     try {
+        // Luăm datele actuale ale utilizatorului
         let { data, error: fetchError } = await _supabase
             .from('users_data')
             .select('*')
@@ -1722,54 +1767,32 @@ async function buy(title, price, options = null) {
 
         if (data.points >= price) {
             const newPoints = data.points - price;
-            // Adăugăm în istoric titlul final (care include și opțiunea aleasă)
-            const newHistory = [`${finalTitle} (${new Date().toLocaleDateString('ro-RO')})`, ...data.history];
+            // Adăugăm în istoric și păstrăm doar ultimele 10 intrări
+            const newHistory = [`${finalTitle} (${new Date().toLocaleDateString('ro-RO')})`, ...data.history].slice(0, 10);
 
+            // Actualizăm baza de date
             const { error: updateError } = await _supabase
                 .from('users_data')
-                .update({ 
-                    points: newPoints, 
-                    history: newHistory.slice(0, 5) 
-                })
+                .update({ points: newPoints, history: newHistory })
                 .eq('id', USER_ID);
 
             if (updateError) throw updateError;
 
-            // 5. NOTIFICARE TELEGRAM
-            const toateBeneficiile = [...MENIU_PUBLIC, ...MENIU_PRIVAT];
-            const beneficiuOriginal = toateBeneficiile.find(b => b.titlu === title);
-            const descriere = beneficiuOriginal ? beneficiuOriginal.desc : "Fără descriere";
-
-            const botToken = "8665700807:AAGUePmZoK7Oo83QdFPJWUmpv-EjOMG9A-A";
-            const chatId = "976748886";
-            
-            const mesaj = 
-                `❤️ *A ales:* ${finalTitle}\n` +
-                `📝 *Descriere:* _${descriere}_\n\n` +
-                `💰 *Preț:* ${price} credite\n` +
-                `✨ *Balanță nouă:* ${newPoints} credite\n\n` +
-                `xxxxxxxxxxxxxxxxxxxxxx`;
-
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: mesaj,
-                    parse_mode: "Markdown"
-                })
-            }).catch(err => console.error("Eroare Telegram:", err));
+            // Trimitem notificare pe Telegram
+            sendTelegramNotification(finalTitle, price, newPoints);
 
             alert("🎉 Felicitări! Ai deblocat: " + finalTitle);
-            loadData(); // Reîncărcăm datele pentru a actualiza interfața
+            loadData(); // Reîncărcăm interfața pentru a vedea noile puncte
         } else {
-            alert("Nu ai destule credite! ⚡");
+            alert("Nu ai destule credite! ✨ Mai fă niște streak-uri!");
         }
     } catch (err) {
-        console.error("Eroare sistem:", err);
-        alert("A apărut o eroare la procesare. Verifică conexiunea sau consola.");
+        console.error("Eroare la achiziție:", err);
+        alert("A apărut o eroare. Încearcă din nou.");
     }
 }
+
+
 
 
 
