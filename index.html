@@ -1626,14 +1626,19 @@ function renderUI(userData) {
 }
 
 
-// Am extras logica de istoric într-o funcție separată pentru curățenie
 function renderHistory(userData, isPrivateUnlocked) {
     const historyContainer = document.getElementById('history-list');
     if (userData.history && userData.history.length > 0) {
         historyContainer.innerHTML = userData.history.map(h => {
-            const parti = h.split('(');
-            const numeReal = parti[0].trim();
-            const dataTranzactie = parti[1] ? parti[1].replace(')', '') : '';
+            // Găsim ultima poziție a parantezei deschise
+            const lastParenIndex = h.lastIndexOf('(');
+            
+            // Numele real este tot ce se află înainte de ultima paranteză
+            const numeReal = lastParenIndex !== -1 ? h.substring(0, lastParenIndex).trim() : h;
+            
+            // Data este ce se află între ultima paranteză și finalul string-ului
+            const dataTranzactie = lastParenIndex !== -1 ? h.substring(lastParenIndex + 1).replace(')', '') : '';
+            
             const estePrivat = MENIU_PRIVAT.some(item => item.titlu === numeReal);
             const trebuieProtejat = estePrivat && !isPrivateUnlocked;
 
@@ -1649,6 +1654,7 @@ function renderHistory(userData, isPrivateUnlocked) {
         historyContainer.innerHTML = `<p style="font-size: 0.8rem; opacity: 0.4; text-align: center; padding: 20px;">Nicio achiziție înregistrată încă.</p>`;
     }
 }
+
 
 
 
