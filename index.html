@@ -993,7 +993,7 @@ const MENIU_PRIVAT = [
 ];
 
 
-function resetApp(event) {
+async function resetApp(event) {
     if (event) {
         if (typeof event.preventDefault === 'function') event.preventDefault();
         if (typeof event.stopPropagation === 'function') event.stopPropagation();
@@ -1003,45 +1003,37 @@ function resetApp(event) {
     const btn = document.getElementById('reset-circle');
     if (btn) btn.classList.add('glow-active');
 
-    // 1. RESETARE LOGICĂ VAULT PRIVAT (Blocare)
-    const overlay = document.getElementById('private-lock-overlay');
-    const privateGrid = document.getElementById('private-grid');
-    if (overlay) overlay.style.display = 'none'; // Opțional, ascundem grid-ul direct
-    if (overlay) overlay.style.display = 'block'; 
-    if (privateGrid) privateGrid.style.display = 'none'; 
-
-    // 2. RESETARE CĂUTARE
+    // 1. Resetăm stările (Căutare + Extindere)
     searchTerm = "";
     const searchInput = document.getElementById('search-input');
     if (searchInput) searchInput.value = "";
     
-    const clearBtn = document.getElementById('clear-search');
-    if (clearBtn) {
-        clearBtn.style.opacity = "0";
-        clearBtn.style.pointerEvents = "none";
-    }
-
-    // 3. RESTRÂNGERE CARDURI (Resetăm starea de extindere)
     expanded.public = false;
     expanded.private = false;
 
-    // 4. ACTUALIZARE INTERFAȚĂ (Randăm varianta scurtă)
-    loadData();
+    // 2. Blocăm Vault-ul Privat imediat (vizual)
+    const overlay = document.getElementById('private-lock-overlay');
+    const privateGrid = document.getElementById('private-grid');
+    if (overlay) overlay.style.display = 'block'; 
+    if (privateGrid) privateGrid.style.display = 'none'; 
 
-    // 5. SCROLL FIX (Forțăm scroll-ul după ce DOM-ul s-a curățat)
-    // Folosim o întârziere mică pentru a lăsa browserul să scurteze pagina
-    setTimeout(() => {
+    // 3. AȘTEPTĂM ca interfața să se updateze (să se facă scurtă)
+    await loadData();
+
+    // 4. Acum că pagina e scurtă, dăm scroll sus
+    // Folosim requestAnimationFrame pentru a fi siguri că browserul a procesat noua înălțime
+    requestAnimationFrame(() => {
         window.scrollTo({
             top: 0,
-            left: 0,
             behavior: 'smooth'
         });
-    }, 100); // 100ms sunt suficiente pentru recalcularea layout-ului
+    });
 
     setTimeout(() => {
         if (btn) btn.classList.remove('glow-active');
     }, 1000);
 }
+
 
 
 
@@ -1502,28 +1494,31 @@ async function loadData() {
     let showStreakAtStart = false;
     let rewardType = "daily";
 
+    // Mod de testare (Mock)
     if (!USE_API) {
         data = MOCK_DATA;
         renderUI(data);
-        return;
+        return true; // Confirmăm finalizarea
     }
 
+    // Preluare date din Supabase
     let { data: dbData, error } = await _supabase
         .from('users_data')
         .select('*')
         .eq('id', USER_ID)
         .single();
 
-    if (error) return;
-    data = dbData;
-
-    const acum = new Date();
+    if (error) {
+        console.error("Eroare Supabase:", error);
+        return false;
+    }
     
-    // Transformăm data de AZI în format "2026-05-04" (ignora ora)
+    data = dbData;
+    const acum = new Date();
     const aziString = acum.toISOString().split('T')[0];
 
+    // Logica de Streak & Update puncte zilnice
     if (!data.last_update) {
-        // Prima rulare din istorie
         showStreakAtStart = true;
         const newPoints = (data.points || 0) + 1;
         await _supabase
@@ -1533,14 +1528,9 @@ async function loadData() {
         data.points = newPoints;
         data.streak = 1;
     } else {
-        // Transformăm data din BAZA DE DATE în format "2026-05-03" (ignora ora)
         const ultimaDataString = new Date(data.last_update).toISOString().split('T')[0];
-
-        // VERIFICARE: Este data de azi diferită de data ultimei intrări?
         if (aziString !== ultimaDataString) {
             showStreakAtStart = true;
-
-            // Calculăm dacă sunt zile consecutive pentru streak
             const dataAzi = new Date(aziString);
             const dataUltima = new Date(ultimaDataString);
             const diffInDays = Math.round((dataAzi - dataUltima) / (1000 * 60 * 60 * 24));
@@ -1560,7 +1550,7 @@ async function loadData() {
                 .from('users_data')
                 .update({ 
                     points: newPoints, 
-                    last_update: acum.toISOString(), // Salvăm data completă (cu oră) pentru referință viitoare
+                    last_update: acum.toISOString(),
                     streak: noulStreak
                 })
                 .eq('id', USER_ID);
@@ -1570,14 +1560,19 @@ async function loadData() {
         }
     }
 
+    // Randăm interfața
     renderUI(data);
 
+    // Declanșăm modalul de streak dacă e cazul
     if (showStreakAtStart) {
         setTimeout(() => {
             openStreakModal(true, rewardType); 
         }, 1000);
     }
+
+    return true; // Această linie este crucială pentru resetApp
 }
+
 
 
 
