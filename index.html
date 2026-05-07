@@ -1954,7 +1954,7 @@ function renderUI(userData) {
 function renderHistory(userData, isPrivateUnlocked) {
     const historyContainer = document.getElementById('history-list');
     
-    // CONFIGURARE: Alege aici câte caractere vrei să afișezi maxim
+    // Limita de caractere pentru afișare
     const limitaCaractere = 19; 
 
     if (userData.history && userData.history.length > 0) {
@@ -1967,12 +1967,28 @@ function renderHistory(userData, isPrivateUnlocked) {
             const icon = chars[0];
             let textOnly = chars.slice(1).join('').trim();
 
-            // --- LOGICA PENTRU "..." (TRUNCATE) ---
+            // Păstrăm textul curat pentru comparație înainte de a pune "..."
+            const textToCompare = textOnly.replace('...', '').trim();
+
+            // Scurtăm textul pentru layout
             if (textOnly.length > limitaCaractere) {
                 textOnly = textOnly.substring(0, limitaCaractere) + "...";
             }
 
-            const estePrivat = MENIU_PRIVAT.some(item => item.titlu.includes(textOnly.replace('...', '')));
+            // FUNCȚIE DE NORMALIZARE: Elimină emoji și spații extra pentru o comparare precisă
+            const normalize = (str) => {
+                return str.toLowerCase()
+                    .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '')
+                    .trim();
+            };
+
+            // Verificăm dacă beneficiul aparține seifului privat
+            const estePrivat = MENIU_PRIVAT.some(item => {
+                const titluMeniuCurat = normalize(item.titlu);
+                const textIstoricCurat = normalize(textToCompare);
+                return titluMeniuCurat.includes(textIstoricCurat) || textIstoricCurat.includes(titluMeniuCurat);
+            });
+
             const trebuieProtejat = estePrivat && !isPrivateUnlocked;
 
             return `
@@ -1995,6 +2011,7 @@ function renderHistory(userData, isPrivateUnlocked) {
         historyContainer.innerHTML = `<div style="text-align: center; padding: 30px 0; opacity: 0.3;"><p style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;">Nicio activitate înregistrată</p></div>`;
     }
 }
+
 
 
 
