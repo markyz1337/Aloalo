@@ -220,14 +220,149 @@
             border: 1px solid var(--glass-border);
         }
 
-        .locked-overlay {
-            text-align: center; padding: 40px 20px;
-            background: rgba(116, 0, 184, 0.03);
-            border: 1px dashed var(--locked);
-            border-radius: 28px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
+.locked-overlay {
+    position: relative;
+    overflow: hidden;
+    padding: 80px 30px;
+    border-radius: 40px;
+    background: rgba(20, 20, 25, 0.4);
+    border: 1px solid rgba(116, 0, 184, 0.2);
+    
+    /* ASIGURĂ CENTRAREA PERFECTĂ */
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    width: 100%;
+    box-sizing: border-box;
+
+    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    cursor: pointer;
+    z-index: 1;
+}
+
+
+/* Efectul de aura mov din spatele scutului */
+.locked-overlay::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 140px;
+    height: 140px;
+    background: var(--locked);
+    filter: blur(60px);
+    opacity: 0.25;
+    z-index: -1;
+    transition: 0.6s;
+    pointer-events: none;
+}
+
+/* EFECTUL DE SCANARE LUXURY (Dunga de lumină) */
+.locked-overlay::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%; 
+    width: 70%;
+    height: 100%;
+    background: linear-gradient(
+        to right,
+        transparent 0%,
+        rgba(255, 255, 255, 0) 10%,
+        rgba(255, 255, 255, 0.15) 50%, 
+        rgba(255, 255, 255, 0) 90%,
+        transparent 100%
+    );
+    transform: skewX(-25deg);
+    pointer-events: none;
+    z-index: 3;
+    /* 4s = durata totala (miscare + pauza). Modifica aici pentru viteza generala */
+    animation: luxury-scan 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes luxury-scan {
+    0% { left: -110%; opacity: 0; }
+    10% { opacity: 1; }
+    40% { left: 150%; opacity: 1; } /* Dunga trece peste card pana la 40% din timp */
+    50%, 100% { left: 150%; opacity: 0; } /* Ramane ascunsa restul timpului (pauza) */
+}
+
+/* SCUTUL ROMBOIDAL (HEX SHIELD) CU BORDURI MOV */
+.lock-icon-container {
+    position: relative;
+    z-index: 2;
+    margin-bottom: 25px;
+}
+
+.hex-shield {
+    width: 90px;
+    height: 90px;
+    background: rgba(116, 0, 184, 0.1); /* Fundal mov foarte stins */
+    backdrop-filter: blur(10px);
+    border: 2px solid var(--locked); /* BORDURA MOV */
+    border-radius: 24px;
+    transform: rotate(45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.5s;
+    /* Glow mov exterior pe bordura */
+    box-shadow: 0 0 15px rgba(116, 0, 184, 0.4), 0 15px 35px rgba(0,0,0,0.5);
+}
+
+.hex-shield svg {
+    transform: rotate(-45deg);
+    filter: drop-shadow(0 0 10px var(--locked));
+    stroke: #b172ff; /* Culoare iconita mov deschis */
+}
+
+/* Efect la Hover */
+.locked-overlay:hover .hex-shield {
+    transform: rotate(45deg) scale(1.1);
+    border-color: #b172ff; /* Bordura se aprinde la atingere */
+    background: rgba(116, 0, 184, 0.2);
+    box-shadow: 0 0 25px rgba(116, 0, 184, 0.6), 0 15px 40px rgba(0,0,0,0.6);
+}
+
+/* TEXTUL SI BADGE-UL */
+.lock-title-elite {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+.lock-title-elite h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    background: linear-gradient(to bottom, #fff, rgba(255,255,255,0.5));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.lock-badge {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 6px 15px;
+    background: rgba(116, 0, 184, 0.15);
+    border: 1px solid rgba(116, 0, 184, 0.3);
+    border-radius: 100px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: #b172ff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    backdrop-filter: blur(5px);
+}
+
+
+
+
+
 
 @media (max-width: 600px) {
     #radio-popup { 
@@ -837,16 +972,37 @@
 
 <div id="private-label" class="section-label">Private Vault</div>
 <div id="private-section">
-    <!-- Overlay-ul pentru lock -->
     <div id="private-lock-overlay" class="locked-overlay" onclick="unlockPrivate()">
-        <span style="font-size: 1.5rem;">🔒</span>
-        <p style="margin: 10px 0 0 0; font-size: 0.75rem; font-weight: 700; color: var(--locked); text-transform: uppercase; letter-spacing: 1px;">Acces Restricționat</p>
+        <!-- Elementul central: Scutul Romboidal -->
+        <div class="lock-icon-container">
+            <div class="hex-shield">
+                <svg width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="#7400b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    <circle cx="12" cy="11" r="3"></circle>
+                    <path d="M12 14v4"></path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Textul de lux -->
+        <div class="lock-title-elite" style="text-align: center;">
+            <h2>PRIVATE VAULT </h2>
+            <div class="lock-badge">
+                <span style="margin-right: 5px;">🔒</span> RESTRICTED ACCESS
+            </div>
+        </div>
+        
+        <p style="margin-top: 25px; font-size: 0.7rem; opacity: 0.4; font-weight: 600; letter-spacing: 1px;">
+            ATINGE PENTRU AUTENTIFICARE
+        </p>
     </div>
     
-    <!-- Grid-ul privat care e ascuns la început -->
+    <!-- Grid-ul tău rămâne la fel sub overlay -->
     <div class="grid" id="private-grid" style="display: none;"></div>
     <button id="btn-more-private" class="btn-glass" style="width: auto; margin: 20px auto; display: none;" onclick="toggleExpand('private')">Vezi tot</button>
 </div>
+
+
 
 
         <div class="section-label">Transaction History</div>
@@ -999,35 +1155,52 @@ async function resetApp(event) {
         if (typeof event.stopPropagation === 'function') event.stopPropagation();
     }
 
+    // Eliminăm focusul de pe orice input (închide tastatura pe mobil)
     document.activeElement.blur();
+    
+    // Feedback vizual pe butonul de reset
     const btn = document.getElementById('reset-circle');
     if (btn) btn.classList.add('glow-active');
 
-    // 1. Resetăm stările (Căutare + Extindere)
+    // 1. Resetăm stările de căutare și expansiune
     searchTerm = "";
     const searchInput = document.getElementById('search-input');
-    if (searchInput) searchInput.value = "";
+    if (searchInput) {
+        searchInput.value = "";
+        // Resetăm și butonul X de la căutare
+        const clearBtn = document.getElementById('clear-search');
+        if (clearBtn) {
+            clearBtn.style.opacity = "0";
+            clearBtn.style.pointerEvents = "none";
+        }
+    }
     
     expanded.public = false;
     expanded.private = false;
 
-    // 2. Blocăm Vault-ul Privat imediat și ASCUNDEM butoanele "Vezi tot"
+    // 2. Blocăm Vault-ul Privat și forțăm CENTRAREA cu 'flex'
     const overlay = document.getElementById('private-lock-overlay');
     const privateGrid = document.getElementById('private-grid');
     const btnMorePrivate = document.getElementById('btn-more-private');
     const btnMorePublic = document.getElementById('btn-more-public');
 
-    if (overlay) overlay.style.display = 'block'; 
-    if (privateGrid) privateGrid.style.display = 'none'; 
+    if (overlay) {
+        // SCHIMBARE CRITICĂ: 'flex' în loc de 'block' pentru a nu se muta elementele la stânga
+        overlay.style.display = 'flex'; 
+    }
     
-    // Forțăm ascunderea butoanelor de expansiune la reset
+    if (privateGrid) {
+        privateGrid.style.display = 'none'; 
+    }
+    
+    // Ascundem butoanele "Vezi tot" pentru a reveni la starea compactă
     if (btnMorePrivate) btnMorePrivate.style.display = 'none';
     if (btnMorePublic) btnMorePublic.style.display = 'none';
 
-    // 3. Încărcăm datele
+    // 3. Reîncărcăm datele (din API sau Mock)
     await loadData();
 
-    // 4. Scroll sus după ce interfața s-a curățat
+    // 4. Scroll lin către partea de sus a paginii
     requestAnimationFrame(() => {
         window.scrollTo({
             top: 0,
@@ -1035,10 +1208,12 @@ async function resetApp(event) {
         });
     });
 
+    // Eliminăm efectul de strălucire după 1 secundă
     setTimeout(() => {
         if (btn) btn.classList.remove('glow-active');
     }, 1000);
 }
+
 
 
 
@@ -1368,20 +1543,38 @@ function updatePinDisplay() {
 }
 
 function unlockSuccess() {
+    // 1. Închidem modalul de PIN și reactivăm butonul de reset
     document.getElementById('custom-prompt').style.display = 'none';
     toggleResetButton(true);
 
     const overlay = document.getElementById('private-lock-overlay');
     const privateGrid = document.getElementById('private-grid');
     
-    if(overlay) overlay.style.display = 'none';
-    if(privateGrid) {
-        privateGrid.style.display = 'grid';
-        // Resetăm starea extinsă la deblocare pentru a nu sări direct la lista lungă
+    // 2. Ascundem definitiv overlay-ul cu lacăt
+    if (overlay) {
+        overlay.style.setProperty('display', 'none', 'important');
+    }
+
+    // 3. Afișăm grid-ul cu beneficii private
+    if (privateGrid) {
+        privateGrid.style.setProperty('display', 'grid', 'important');
+        
+        // Resetăm starea de expansiune pentru a nu fi direct pe "Vezi tot"
         expanded.private = false; 
+        
+        // Re-randăm datele pentru a popula grid-ul acum vizibil
         loadData();
     }
+
+    // 4. Opțional: Scroll lin către începutul secțiunii private
+    setTimeout(() => {
+        const privateLabel = document.getElementById('private-label');
+        if (privateLabel) {
+            privateLabel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, 300);
 }
+
 
 
 
