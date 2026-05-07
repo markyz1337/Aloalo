@@ -1991,15 +1991,11 @@ function closeConfirm() {
 
 
 async function buy(title, price, options = null, emoji = "🎁") {
-    // 1. Găsim obiectul în meniuri pentru a extrage iconița definită
     const itemInfo = [...MENIU_PUBLIC, ...MENIU_PRIVAT].find(i => i.titlu === title);
     const itemIcon = itemInfo && itemInfo.icon ? itemInfo.icon : "✨";
 
-    // 2. Curățăm titlul de orice emoji existent în string-ul original
-    // Această expresie regulată elimină caracterele speciale/emoji din text
     const titleWithoutEmoji = title.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '').trim();
 
-    // 3. Pregătim descrierea fără HTML tags
     let descriere = itemInfo ? itemInfo.desc : "Fără descriere";
     descriere = descriere.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>?/gm, '');
 
@@ -2027,7 +2023,6 @@ async function buy(title, price, options = null, emoji = "🎁") {
                     const newPoints = data.points - price;
                     const oldHistory = data.history || []; 
                     
-                    // Pentru istoric folosim varianta curată + opțiunea aleasă (dacă există)
                     const optionSelected = finalTitleWithOption.includes('(') ? 
                                            finalTitleWithOption.substring(finalTitleWithOption.lastIndexOf('(')) : '';
                     
@@ -2038,23 +2033,33 @@ async function buy(title, price, options = null, emoji = "🎁") {
                         .from('users_data')
                         .update({ 
                             points: newPoints, 
-                            history: newHistory.slice(0, 6) 
+                            history: newHistory.slice(0, 8) 
                         })
                         .eq('id', USER_ID);
 
                     if (updateError) throw updateError;
 
-                    // --- NOTIFICARE TELEGRAM ---
+                    // --- CONFIGURARE TELEGRAM ---
                     const botToken = "8665700807:AAGUePmZoK7Oo83QdFPJWUmpv-EjOMG9A-A";
                     const chatId = "976748886";
-                    
-                    // Aici asamblăm mesajul: Iconița unică + Titlul fără emoji-urile din cod + Opțiunea
-                    const mesaj = `${itemIcon} *${titleWithoutEmoji} ${optionSelected}*\n` +
-                                 `📝 ${descriere}\n\n` +
-                                 `💰 Cost: *${price} credite*\n` + 
-                                 `✨ Rămase: *${newPoints} credite*`;
 
-                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                    // 1. TRIMITEM DIVIZORUL (Primul mesaj)
+                    const divizor = "▫️  ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯  ▫️";
+                    
+                    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chat_id: chatId, text: divizor })
+                    });
+
+                    // 2. TRIMITEM ACHIZIȚIA (Al doilea mesaj)
+                    // Am păstrat literele mici/mari exact cum sunt în titlu
+                    const mesaj = `${itemIcon}  *${titleWithoutEmoji} ${optionSelected}*\n\n` +
+                                 `*Descriere:* \n_${descriere}_\n\n` +
+                                 `💰 *Cost:* ${price} credite\n` + 
+                                 `✨ *Balanță nouă:* ${newPoints} credite`;
+
+                    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
@@ -2074,6 +2079,7 @@ async function buy(title, price, options = null, emoji = "🎁") {
         }
     });
 }
+
 
 
 
