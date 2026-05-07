@@ -1993,13 +1993,20 @@ function closeConfirm() {
 
 async function buy(title, price, options = null, emoji = "🎁") {
     const itemInfo = [...MENIU_PUBLIC, ...MENIU_PRIVAT].find(i => i.titlu === title);
-    const descriere = itemInfo ? itemInfo.desc : "Fără descriere";
+    
+    // Curățăm descrierea de tag-uri <br> sau alte elemente HTML pentru Telegram
+    let descriere = itemInfo ? itemInfo.desc : "Fără descriere";
+    descriere = descriere.replace(/<br\s*\/?>/gi, "\n"); // Transformă <br> în linie nouă
+    descriere = descriere.replace(/<[^>]*>?/gm, '');     // Elimină orice alte tag-uri HTML
+
+    // Curățăm titlul de <br> (pentru cardurile speciale)
+    let titluCuratTelegram = title.replace(/<br\s*\/?>/gi, " "); 
 
     showConfirmModal({
         title: title,
         price: price,
         options: options,
-        emoji: emoji, // Transmitem emoji-ul custom
+        emoji: emoji,
         onConfirm: async (finalTitle) => {
             if (!USE_API) {
                 alert(`[MOD TESTARE]\nBeneficiu: ${finalTitle}`);
@@ -2030,11 +2037,15 @@ async function buy(title, price, options = null, emoji = "🎁") {
 
                     if (updateError) throw updateError;
 
-                    // NOTIFICARE TELEGRAM
+                    // NOTIFICARE TELEGRAM (Cu titlu și descriere curățate)
                     const botToken = "8665700807:AAGUePmZoK7Oo83QdFPJWUmpv-EjOMG9A-A";
                     const chatId = "976748886";
-                    const mesaj = `❤️ *${finalTitle}*\n` +
-                                 `📝 *${descriere}*\n\n` +
+                    
+                    // Curățăm și finalTitle pentru cazul în care are opțiuni selectate
+                    const finalTitleClean = finalTitle.replace(/<br\s*\/?>/gi, " ");
+
+                    const mesaj = `❤️ *${finalTitleClean}*\n` +
+                                 `📝 ${descriere}\n\n` +
                                  `💰 Preț: *${price} credite*\n` + 
                                  `✨ Balanță nouă: *${newPoints} credite*`;
 
@@ -2054,6 +2065,7 @@ async function buy(title, price, options = null, emoji = "🎁") {
         }
     });
 }
+
 
 
 
