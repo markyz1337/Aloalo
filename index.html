@@ -2038,7 +2038,7 @@ async function buy(title, price, options = null, emoji = "🎁") {
                         .from('users_data')
                         .update({ 
                             points: newPoints, 
-                            history: newHistory.slice(0, 8) 
+                            history: newHistory.slice(0, 6) 
                         })
                         .eq('id', USER_ID);
 
