@@ -1015,7 +1015,7 @@
 
     <script>
 // --- CONFIGURARE MOD FUNCTIONARE ---
-const USE_API = true; 
+const USE_API = false; 
 // ------------------------------------
 
 const SUPABASE_URL = 'https://fndjrfieitieqzafhyzz.supabase.co';
@@ -1058,14 +1058,14 @@ const MENIU_PUBLIC = [
 
     // --- Relaxare și Casă ---
     { id: 1, titlu: "Masaj Spate 💆‍♂️", desc: "Relaxare completă.", icon: "💆‍♂️", pret: 2 },
-    { id: 2, titlu: "Seară de Film 🍿", desc: "Tu alegi filmul, eu aduc floricelele.", icon: "🍿", pret: 2 },
+    { id: 2, titlu: "Seară de Film 🍿", desc: "Tu alegi filmul, eu aduc floricelele.", icon: "🍿", pret: 4 },
     { id: 3, titlu: "Mic Dejun 🍳", desc: "Omletă și cafea, servită la pat.", icon: "🍳", pret: 3 },
     { id: 4, titlu: "Masaj Tălpi 👣", desc: "După o zi lungă, sau fără un motiv anume.", icon: "👣", pret: 3 },
     { id: 5, titlu: "Seară de Jocuri 🎮", desc: "Boardgames sau consolă, promit să te las să câștigi.", icon: "🎮", pret: 2 },
     { id: 6, titlu: "Baie cu Spumă 🛁", desc: "Pregătesc cada, lumânările și muzica ambientală.", icon: "🛁", pret: 4 },
     { id: 7, titlu: "Gătit împreună 👨‍🍳", desc: "Eu sunt ajutorul tău de bucătar (și spăl vasele).", icon: "👨‍🍳", pret: 3 },
     { id: 8, titlu: "Comandă Food Delivery 🍕", desc: "Comandăm ceva online, alegi tu meniul.", icon: "🍕", pret: 10 },
-    { id: 9, titlu: "Bucătar personal 🥗", desc: "Alegi ceva de pe canalul meu de telegram cu rețete și eu pregătesc.", icon: "🥗", pret: 9 },
+    { id: 9, titlu: "Bucătar personal 🥗", desc: "Alegi ceva de pe canalul meu de telegram cu rețete și eu pregătesc.", icon: "🥗", pret: 10 },
     { id: 10, titlu: "Home Spa Day 🧖‍♀️", desc: "Facem mască de față, manichiură și relaxare, un fel de noapte cu fetele doar că cu mine 🤣", icon: "🧖‍♀️", pret: 11 },
     { id: 11, titlu: "Fără Social Media 📵", desc: "O seară întreagă fără telefoane, doar noi doi.", icon: "📵", pret: 2 },
     { id: 12, titlu: "Mic Dejun de Duminică 🥞", desc: "Clătite cu ciocolată și fructe.", icon: "🥞", pret: 6 },
@@ -1087,7 +1087,7 @@ const MENIU_PUBLIC = [
     { id: 26, titlu: "Chef de Dulciuri 🍪", desc: "Fac ceva dulce de unul singur pentru tine cu multă iubire!", icon: "🍪", pret: 8 },
     { id: 28, titlu: "La Țintă 🎯", desc: "O întâlnire la poligonul de tras cu arma.", icon: "🎯", pret: 30 },
     { id: 29, titlu: "Viteză pe Kart 🏎️", desc: "O întâlnire plină de adrenalină cu kartul.", icon: "🏎️", pret: 30 },
-    { id: 30, titlu: "Ziua Pupicilor 😘", desc: "O zi în care te pup non-stop.", icon: "😘", pret: 4 },
+    { id: 30, titlu: "Ziua Pupicilor 😘", desc: "O zi în care te pup non-stop.", icon: "😘", pret: 5 },
     { id: 31, titlu: "Escapadă Weekend ✈️", desc: "O plecare surpriză de 2 zile, mă ocup eu.", icon: "✈️", pret: 60 },
     { id: 32, titlu: "Seară la Teatru / Operă 🎭", desc: "O ocazie să ne îmbrăcăm elegant.", icon: "🎭", pret: 40 },
     { id: 33, titlu: "Degustare de Vin 🍷", desc: "O vizită la o cramă sau un wine bar.", icon: "🍷", pret: 35 },
@@ -1844,17 +1844,19 @@ function renderHistory(userData, isPrivateUnlocked) {
     if (userData.history && userData.history.length > 0) {
         historyContainer.innerHTML = userData.history.map(h => {
             const lastParenIndex = h.lastIndexOf('(');
-            const numeReal = lastParenIndex !== -1 ? h.substring(0, lastParenIndex).trim() : h;
+            const contentPart = lastParenIndex !== -1 ? h.substring(0, lastParenIndex).trim() : h;
             const dataTranzactie = lastParenIndex !== -1 ? h.substring(lastParenIndex + 1).replace(')', '') : '';
             
-            // Verificăm dacă e privat (pentru blur)
-            const estePrivat = MENIU_PRIVAT.some(item => numeReal.includes(item.titlu.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '').trim()));
+            // Verificăm dacă este un item privat (pentru blur)
+            // Căutăm în meniul privat ignorând iconița de la început
+            const numeFaraIcon = contentPart.split(' ').slice(1).join(' '); 
+            const estePrivat = MENIU_PRIVAT.some(item => item.titlu.includes(numeFaraIcon));
             const trebuieProtejat = estePrivat && !isPrivateUnlocked;
 
             return `
                 <div class="history-item">
-                    <span class="${trebuieProtejat ? 'text-locked' : ''}" ${trebuieProtejat ? 'style="filter: blur(5px);"' : ''}>
-                        ${trebuieProtejat ? "🔒 Beneficiu Privat" : numeReal}
+                    <span class="${trebuieProtejat ? 'text-locked' : ''}">
+                        ${trebuieProtejat ? "🔒 Beneficiu Privat" : contentPart}
                     </span>
                     <span style="opacity:0.4; font-size:0.7rem; font-weight: 600;">${dataTranzactie}</span>
                 </div>`;
@@ -1874,6 +1876,7 @@ function renderHistory(userData, isPrivateUnlocked) {
 function renderGrid(containerId, items, currentPoints) {
     const container = document.getElementById(containerId);
     const sectionType = containerId.split('-')[0];
+    
     const isSearching = searchTerm.length > 0;
     const isExpanded = expanded[sectionType] || isSearching;
     const itemsToShow = isExpanded ? items : items.slice(0, 2);
@@ -1882,28 +1885,40 @@ function renderGrid(containerId, items, currentPoints) {
         const isFree = item.pret === 0;
         const isSpecial = item.special === true;
         const optionsJson = item.options ? JSON.stringify(item.options).replace(/"/g, '&quot;') : 'null';
-        const itemIcon = item.icon ? item.icon : "🎁"; // Iconița din constantă
+        const itemIcon = item.icon ? item.icon : (isFree ? "✨" : "🎁"); // Fallback dacă uiți să pui icon
         
+        const specialStyle = isSpecial ? `
+            background: linear-gradient(145deg, rgba(255, 77, 109, 0.15), rgba(116, 0, 184, 0.15));
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 20px rgba(255, 77, 109, 0.2);
+            animation: pulse-special 2s infinite;
+        ` : '';
+
+        const blueAccent = "#00d4ff";
+        const freeCardStyle = (isFree && !isSpecial) ? `border-color: ${blueAccent}66;` : '';
+        const freeTagStyle = (isFree && !isSpecial) ? `background: ${blueAccent}1a; color: ${blueAccent}; border: 1px solid ${blueAccent}33;` : '';
+        const freeBtnStyle = (isFree && !isSpecial) ? `border-color: ${blueAccent}80; color: ${blueAccent}; background: ${blueAccent}0d;` : '';
+
         return `
-            <div class="glass-card" style="${isSpecial ? 'animation: pulse-special 2s infinite; border-color: var(--accent);' : ''}">
+            <div class="glass-card" style="${specialStyle} ${freeCardStyle}">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:15px;">
-                    <h3 style="margin:0; font-size:1.1rem;">${item.titlu}</h3>
-                    <span class="price-tag">${isFree ? 'FREE' : item.pret + ' CR'}</span>
+                    <h3 style="margin:0; font-size:1.1rem; line-height:1.2; ${isSpecial ? 'color: #ff4d6d; text-shadow: 0 0 10px rgba(255,77,109,0.5);' : ''}">${item.titlu}</h3>
+                    <span class="price-tag" style="${isSpecial ? 'background: var(--accent); color: white;' : (isFree ? freeTagStyle : '')}">
+                        ${isSpecial ? 'NOW' : (isFree ? 'FREE' : item.pret + ' CR')}
+                    </span>
                 </div>
-                <p style="font-size:0.85rem; opacity:0.8;">${item.desc}</p>
-                <button class="btn-glass" 
+                <p style="font-size:0.85rem; opacity:0.8; line-height:1.5; margin:0;">${item.desc}</p>
+                
+                <button class="btn-glass ${isFree && !isSpecial ? 'blue-btn' : ''}" 
                     ${currentPoints < item.pret ? 'disabled' : ''} 
-                    onclick="buy('${item.titlu.replace(/'/g, "\\'")}', ${item.pret}, ${optionsJson}, '${itemIcon}')">
+                    onclick="buy('${item.titlu.replace(/'/g, "\\'")}', ${item.pret}, ${optionsJson}, '${itemIcon}')"
+                    style="${isSpecial ? 'background: var(--accent); border: none; margin-top: 20px;' : freeBtnStyle}">
                     ${isSpecial ? 'DEZBRACĂ-MĂ 💋' : (isFree ? 'Cere acum ✨' : 'Redeem')}
                 </button>
             </div>
         `;
     }).join('');
 
-    // Codul pentru butonul "Vezi tot" rămâne neschimbat..
-
-
-    // Gestionarea butonului "Vezi tot / Arată mai puține"
     const btnMore = document.getElementById(`btn-more-${sectionType}`);
     if (btnMore) {
         if (isSearching || items.length <= 2) {
@@ -1914,7 +1929,6 @@ function renderGrid(containerId, items, currentPoints) {
         }
     }
 }
-
 
 
 
@@ -1977,10 +1991,16 @@ function closeConfirm() {
 
 
 async function buy(title, price, options = null, emoji = "🎁") {
+    // Căutăm obiectul original în ambele meniuri pentru a-i lua iconița (field-ul 'icon')
     const itemInfo = [...MENIU_PUBLIC, ...MENIU_PRIVAT].find(i => i.titlu === title);
-    
+    const itemIcon = itemInfo && itemInfo.icon ? itemInfo.icon : "✨";
+
+    // Curățăm descrierea pentru Telegram
     let descriere = itemInfo ? itemInfo.desc : "Fără descriere";
     descriere = descriere.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>?/gm, '');
+
+    // Curățăm titlul de tag-uri <br>
+    let titluCuratTelegram = title.replace(/<br\s*\/?>/gi, " ");
 
     showConfirmModal({
         title: title,
@@ -1989,7 +2009,7 @@ async function buy(title, price, options = null, emoji = "🎁") {
         emoji: emoji,
         onConfirm: async (finalTitle) => {
             if (!USE_API) {
-                alert(`[MOD TESTARE]\nBeneficiu: ${emoji} ${finalTitle}`);
+                alert(`[MOD TESTARE]\nBeneficiu: ${finalTitle}`);
                 return;
             }
 
@@ -2004,36 +2024,35 @@ async function buy(title, price, options = null, emoji = "🎁") {
 
                 if (data.points >= price) {
                     const newPoints = data.points - price;
-                    
-                    // --- CURĂȚARE TOTALĂ TITLU ---
-                    // Scoatem emoji-urile existente din textul titlului pentru a nu apărea de două ori
-                    const titleTextOnly = finalTitle.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '').trim();
-                    const cleanTitle = titleTextOnly.replace(/<br\s*\/?>/gi, " ");
-                    
-                    // Salvăm în istoric: ICON + SPAȚIU + TEXT
-                    const entryName = `${emoji} ${cleanTitle}`;
                     const oldHistory = data.history || []; 
-                    const newHistory = [`${entryName} (${new Date().toLocaleDateString('ro-RO')})`, ...oldHistory];
+                    
+                    // --- LOGICA NOUĂ PENTRU ISTORIC ---
+                    // 1. Curățăm titlul final de emoji-uri
+                    const titleNoEmoji = finalTitle.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '').trim();
+                    
+                    // 2. Salvăm formatul: "ICON Titlu (Data)"
+                    const historyEntry = `${itemIcon} ${titleNoEmoji} (${new Date().toLocaleDateString('ro-RO')})`;
+                    const newHistory = [historyEntry, ...oldHistory];
 
                     const { error: updateError } = await _supabase
                         .from('users_data')
                         .update({ 
                             points: newPoints, 
-                            history: newHistory.slice(0, 15) 
+                            history: newHistory.slice(0, 8) // Am mărit la 8 pentru vizibilitate
                         })
                         .eq('id', USER_ID);
 
                     if (updateError) throw updateError;
 
-                    // --- TELEGRAM ---
+                    // NOTIFICARE TELEGRAM
                     const botToken = "8665700807:AAGUePmZoK7Oo83QdFPJWUmpv-EjOMG9A-A";
                     const chatId = "976748886";
-                    
-                    const mesaj = `${emoji} *${cleanTitle}*\n` +
+                    const finalTitleClean = finalTitle.replace(/<br\s*\/?>/gi, " ");
+
+                    const mesaj = `❤️ *${finalTitleClean}*\n` +
                                  `📝 ${descriere}\n\n` +
                                  `💰 Preț: *${price} credite*\n` + 
-                                 `✨ Balanță nouă: *${newPoints} credite*\n\n` +
-                                 `xxxxxxxxxxxxxxxxx`;
+                                 `✨ Balanță nouă: *${newPoints} credite*`;
 
                     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                         method: 'POST',
@@ -2051,7 +2070,6 @@ async function buy(title, price, options = null, emoji = "🎁") {
         }
     });
 }
-
 
 
 
