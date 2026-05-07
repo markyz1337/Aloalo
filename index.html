@@ -1991,15 +1991,13 @@ function closeConfirm() {
 
 
 async function buy(title, price, options = null, emoji = "🎁") {
-    // Căutăm obiectul original în ambele meniuri pentru a-i lua iconița (field-ul 'icon')
+    // 1. Găsim obiectul în meniuri pentru a extrage iconița definită (ex: 💆‍♂️, 🍿, 💋)
     const itemInfo = [...MENIU_PUBLIC, ...MENIU_PRIVAT].find(i => i.titlu === title);
     const itemIcon = itemInfo && itemInfo.icon ? itemInfo.icon : "✨";
 
-    // Curățăm descrierea pentru Telegram
+    // 2. Pregătim descrierea și titlul curat pentru Telegram
     let descriere = itemInfo ? itemInfo.desc : "Fără descriere";
     descriere = descriere.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>?/gm, '');
-
-    // Curățăm titlul de tag-uri <br>
     let titluCuratTelegram = title.replace(/<br\s*\/?>/gi, " ");
 
     showConfirmModal({
@@ -2026,11 +2024,8 @@ async function buy(title, price, options = null, emoji = "🎁") {
                     const newPoints = data.points - price;
                     const oldHistory = data.history || []; 
                     
-                    // --- LOGICA NOUĂ PENTRU ISTORIC ---
-                    // 1. Curățăm titlul final de emoji-uri
+                    // --- LOGICA PENTRU ISTORIC CURAT (Fără emoji în text) ---
                     const titleNoEmoji = finalTitle.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '').trim();
-                    
-                    // 2. Salvăm formatul: "ICON Titlu (Data)"
                     const historyEntry = `${itemIcon} ${titleNoEmoji} (${new Date().toLocaleDateString('ro-RO')})`;
                     const newHistory = [historyEntry, ...oldHistory];
 
@@ -2038,26 +2033,30 @@ async function buy(title, price, options = null, emoji = "🎁") {
                         .from('users_data')
                         .update({ 
                             points: newPoints, 
-                            history: newHistory.slice(0, 8) // Am mărit la 8 pentru vizibilitate
+                            history: newHistory.slice(0, 8) 
                         })
                         .eq('id', USER_ID);
 
                     if (updateError) throw updateError;
 
-                    // NOTIFICARE TELEGRAM
+                    // --- NOTIFICARE TELEGRAM CU ICONIȚA SPECIFICĂ ---
                     const botToken = "8665700807:AAGUePmZoK7Oo83QdFPJWUmpv-EjOMG9A-A";
                     const chatId = "976748886";
-                    const finalTitleClean = finalTitle.replace(/<br\s*\/?>/gi, " ");
-
-                    const mesaj = `❤️ *${finalTitleClean}*\n` +
+                    
+                    // Folosim itemIcon în loc de inima roșie
+                    const mesaj = `${itemIcon} *${titluCuratTelegram}*\n` +
                                  `📝 ${descriere}\n\n` +
-                                 `💰 Preț: *${price} credite*\n` + 
-                                 `✨ Balanță nouă: *${newPoints} credite*`;
+                                 `💰 Cost: *${price} credite*\n` + 
+                                 `✨ Rămase: *${newPoints} credite*`;
 
                     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ chat_id: chatId, text: mesaj, parse_mode: "Markdown" })
+                        body: JSON.stringify({ 
+                            chat_id: chatId, 
+                            text: mesaj, 
+                            parse_mode: "Markdown" 
+                        })
                     });
 
                     loadData();
@@ -2070,6 +2069,7 @@ async function buy(title, price, options = null, emoji = "🎁") {
         }
     });
 }
+
 
 
 
