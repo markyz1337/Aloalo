@@ -2047,7 +2047,8 @@ async function buy(title, price, options = null, emoji = "🎁") {
                     const mesaj = `❤️ *${finalTitleClean}*\n` +
                                  `📝 ${descriere}\n\n` +
                                  `💰 Preț: *${price} credite*\n` + 
-                                 `✨ Balanță nouă: *${newPoints} credite*`;
+                                 `✨ Balanță nouă: *${newPoints} credite*\n\n` +
+                                `xxxxxxxxxxxxxxxxx`;
 
                     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                         method: 'POST',
