@@ -1954,23 +1954,25 @@ function renderUI(userData) {
 function renderHistory(userData, isPrivateUnlocked) {
     const historyContainer = document.getElementById('history-list');
     
+    // CONFIGURARE: Alege aici câte caractere vrei să afișezi maxim
+    const limitaCaractere = 22; 
+
     if (userData.history && userData.history.length > 0) {
         historyContainer.innerHTML = userData.history.map(h => {
-            // 1. Extragem data din paranteze (ex: "07.05.2026")
             const lastParenIndex = h.lastIndexOf('(');
             const dataTranzactie = lastParenIndex !== -1 ? h.substring(lastParenIndex + 1).replace(')', '') : '--.--';
-            
-            // 2. Luăm tot ce e înainte de paranteză (ex: "💆‍♂️ Masaj Spate")
             let fullText = lastParenIndex !== -1 ? h.substring(0, lastParenIndex).trim() : h;
             
-            // 3. Separăm corect Emoji-ul de restul titlului
-            // Folosim Array.from pentru a trata corect caracterele special (emoji-uri)
             const chars = Array.from(fullText);
-            const icon = chars[0]; // Primul caracter (emoji-ul)
-            const textOnly = chars.slice(1).join('').trim(); // Tot restul titlului
+            const icon = chars[0];
+            let textOnly = chars.slice(1).join('').trim();
 
-            // 4. Verificăm dacă este beneficiu privat
-            const estePrivat = MENIU_PRIVAT.some(item => item.titlu.includes(textOnly));
+            // --- LOGICA PENTRU "..." (TRUNCATE) ---
+            if (textOnly.length > limitaCaractere) {
+                textOnly = textOnly.substring(0, limitaCaractere) + "...";
+            }
+
+            const estePrivat = MENIU_PRIVAT.some(item => item.titlu.includes(textOnly.replace('...', '')));
             const trebuieProtejat = estePrivat && !isPrivateUnlocked;
 
             return `
@@ -1978,7 +1980,7 @@ function renderHistory(userData, isPrivateUnlocked) {
                     <div class="h-content">
                         <div class="h-icon">${trebuieProtejat ? '🔒' : icon}</div>
                         <div class="h-info">
-                            <span class="h-name ${trebuieProtejat ? 'text-locked' : ''}">
+                            <span class="h-name ${trebuieProtejat ? 'text-locked' : ''}" title="${chars.slice(1).join('').trim()}">
                                 ${trebuieProtejat ? "Conținut Privat" : textOnly}
                             </span>
                             <span class="h-time">Tranzacție Confirmată</span>
@@ -1990,12 +1992,10 @@ function renderHistory(userData, isPrivateUnlocked) {
                 </div>`;
         }).join('');
     } else {
-        historyContainer.innerHTML = `
-            <div style="text-align: center; padding: 30px 0; opacity: 0.3;">
-                <p style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;">Nicio activitate înregistrată</p>
-            </div>`;
+        historyContainer.innerHTML = `<div style="text-align: center; padding: 30px 0; opacity: 0.3;"><p style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;">Nicio activitate înregistrată</p></div>`;
     }
 }
+
 
 
 
