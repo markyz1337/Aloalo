@@ -1880,14 +1880,21 @@ function renderGrid(containerId, items, currentPoints) {
     
     const isSearching = searchTerm.length > 0;
     const isExpanded = expanded[sectionType] || isSearching;
+    
+    // Decidem câte elemente afișăm (2 dacă e restrâns, toate dacă e extins/căutare)
     const itemsToShow = isExpanded ? items : items.slice(0, 2);
     
     container.innerHTML = itemsToShow.map(item => {
         const isFree = item.pret === 0;
         const isSpecial = item.special === true;
-        const optionsJson = item.options ? JSON.stringify(item.options).replace(/"/g, '&quot;') : 'null';
-        const itemIcon = item.icon ? item.icon : (isFree ? "✨" : "🎁"); // Fallback dacă uiți să pui icon
         
+        // Pregătim opțiunile pentru a fi trimise sigur ca string JSON
+        const optionsJson = item.options ? JSON.stringify(item.options).replace(/"/g, '&quot;') : 'null';
+        
+        // Stabilim iconița (folosim cea din obiect sau un fallback)
+        const itemIcon = item.icon ? item.icon : (isFree ? "✨" : "🎁");
+        
+        // Stil special pentru "Sex Ring" sau alte beneficii VIP
         const specialStyle = isSpecial ? `
             background: linear-gradient(145deg, rgba(255, 77, 109, 0.15), rgba(116, 0, 184, 0.15));
             border: 1px solid var(--accent);
@@ -1895,6 +1902,7 @@ function renderGrid(containerId, items, currentPoints) {
             animation: pulse-special 2s infinite;
         ` : '';
 
+        // Culori pentru beneficiile gratuite (Albastru deschis/Cyan)
         const blueAccent = "#00d4ff";
         const freeCardStyle = (isFree && !isSpecial) ? `border-color: ${blueAccent}66;` : '';
         const freeTagStyle = (isFree && !isSpecial) ? `background: ${blueAccent}1a; color: ${blueAccent}; border: 1px solid ${blueAccent}33;` : '';
@@ -1903,23 +1911,27 @@ function renderGrid(containerId, items, currentPoints) {
         return `
             <div class="glass-card" style="${specialStyle} ${freeCardStyle}">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:15px;">
-                    <h3 style="margin:0; font-size:1.1rem; line-height:1.2; ${isSpecial ? 'color: #ff4d6d; text-shadow: 0 0 10px rgba(255,77,109,0.5);' : ''}">${item.titlu}</h3>
+                    <h3 style="margin:0; font-size:1.1rem; line-height:1.2; ${isSpecial ? 'color: #ff4d6d; text-shadow: 0 0 10px rgba(255,77,109,0.5);' : ''}">
+                        ${item.titlu}
+                    </h3>
                     <span class="price-tag" style="${isSpecial ? 'background: var(--accent); color: white;' : (isFree ? freeTagStyle : '')}">
                         ${isSpecial ? 'NOW' : (isFree ? 'FREE' : item.pret + ' CR')}
                     </span>
                 </div>
+                
                 <p style="font-size:0.85rem; opacity:0.8; line-height:1.5; margin:0;">${item.desc}</p>
                 
-                <button class="btn-glass ${isFree && !isSpecial ? 'blue-btn' : ''}" 
+                <button class="btn-glass" 
                     ${currentPoints < item.pret ? 'disabled' : ''} 
                     onclick="buy('${item.titlu.replace(/'/g, "\\'")}', ${item.pret}, ${optionsJson}, '${itemIcon}')"
-                    style="${isSpecial ? 'background: var(--accent); border: none; margin-top: 20px;' : freeBtnStyle}">
+                    style="${isSpecial ? 'background: var(--accent); border: none; margin-top: 20px;' : (isFree ? freeBtnStyle : '')}">
                     ${isSpecial ? 'DEZBRACĂ-MĂ 💋' : (isFree ? 'Cere acum ✨' : 'Redeem')}
                 </button>
             </div>
         `;
     }).join('');
 
+    // Gestionarea butonului "Vezi tot / Arată mai puține"
     const btnMore = document.getElementById(`btn-more-${sectionType}`);
     if (btnMore) {
         if (isSearching || items.length <= 2) {
@@ -1930,6 +1942,7 @@ function renderGrid(containerId, items, currentPoints) {
         }
     }
 }
+
 
 
 
@@ -1992,15 +2005,12 @@ function closeConfirm() {
 
 
 async function buy(title, price, options = null, emoji = "🎁") {
+    // Găsim informațiile despre obiect pentru a extrage descrierea curată
     const itemInfo = [...MENIU_PUBLIC, ...MENIU_PRIVAT].find(i => i.titlu === title);
     
-    // Curățăm descrierea de tag-uri <br> sau alte elemente HTML pentru Telegram
+    // Curățăm descrierea: scoatem <br> și alte tag-uri HTML pentru Telegram
     let descriere = itemInfo ? itemInfo.desc : "Fără descriere";
-    descriere = descriere.replace(/<br\s*\/?>/gi, "\n"); // Transformă <br> în linie nouă
-    descriere = descriere.replace(/<[^>]*>?/gm, '');     // Elimină orice alte tag-uri HTML
-
-    // Curățăm titlul de <br> (pentru cardurile speciale)
-    let titluCuratTelegram = title.replace(/<br\s*\/?>/gi, " "); 
+    descriere = descriere.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>?/gm, '');
 
     showConfirmModal({
         title: title,
@@ -2008,12 +2018,14 @@ async function buy(title, price, options = null, emoji = "🎁") {
         options: options,
         emoji: emoji,
         onConfirm: async (finalTitle) => {
+            // Dacă USE_API este false, doar afișăm o alertă de test
             if (!USE_API) {
-                alert(`[MOD TESTARE]\nBeneficiu: ${finalTitle}`);
+                alert(`[MOD TESTARE]\nBeneficiu: ${emoji} ${finalTitle}`);
                 return;
             }
 
             try {
+                // Preluăm datele actuale ale utilizatorului
                 let { data, error: fetchError } = await _supabase
                     .from('users_data')
                     .select('*')
@@ -2024,48 +2036,63 @@ async function buy(title, price, options = null, emoji = "🎁") {
 
                 if (data.points >= price) {
                     const newPoints = data.points - price;
+                    
+                    // --- ISTORIC: Salvăm cu iconița la început ---
+                    // Eliminăm eventualele tag-uri <br> din titlu pentru istoric
+                    const cleanTitleForHistory = finalTitle.replace(/<br\s*\/?>/gi, " ");
+                    const entryName = `${emoji} ${cleanTitleForHistory}`;
+                    
                     const oldHistory = data.history || []; 
-                    const newHistory = [`${finalTitle} (${new Date().toLocaleDateString('ro-RO')})`, ...oldHistory];
+                    const newHistory = [`${entryName} (${new Date().toLocaleDateString('ro-RO')})`, ...oldHistory];
 
+                    // Actualizăm baza de date
                     const { error: updateError } = await _supabase
                         .from('users_data')
                         .update({ 
                             points: newPoints, 
-                            history: newHistory.slice(0, 5) 
+                            history: newHistory.slice(0, 15) // Păstrăm ultimele 15 intrări
                         })
                         .eq('id', USER_ID);
 
                     if (updateError) throw updateError;
 
-                    // NOTIFICARE TELEGRAM (Cu titlu și descriere curățate)
+                    // --- TELEGRAM: Formatul cerut cu iconița în loc de inimă ---
                     const botToken = "8665700807:AAGUePmZoK7Oo83QdFPJWUmpv-EjOMG9A-A";
                     const chatId = "976748886";
                     
-                    // Curățăm și finalTitle pentru cazul în care are opțiuni selectate
-                    const finalTitleClean = finalTitle.replace(/<br\s*\/?>/gi, " ");
+                    // Curățăm titlul final de tag-uri HTML pentru mesaj
+                    const cleanTitleTelegram = finalTitle.replace(/<br\s*\/?>/gi, " ");
 
-                    const mesaj = `❤️ *${finalTitleClean}*\n` +
+                    const mesaj = `${emoji} *${cleanTitleTelegram}*\n` +
                                  `📝 ${descriere}\n\n` +
                                  `💰 Preț: *${price} credite*\n` + 
                                  `✨ Balanță nouă: *${newPoints} credite*\n\n` +
-                                `xxxxxxxxxxxxxxxxx`;
+                                 `xxxxxxxxxxxxxxxxx`;
 
+                    // Trimitem notificarea către bot
                     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ chat_id: chatId, text: mesaj, parse_mode: "Markdown" })
+                        body: JSON.stringify({ 
+                            chat_id: chatId, 
+                            text: mesaj, 
+                            parse_mode: "Markdown" 
+                        })
                     });
 
+                    // Reîncărcăm interfața cu noile date
                     loadData();
                 } else {
                     alert("Nu ai destule credite! ⚡");
                 }
             } catch (err) {
-                console.error("Eroare:", err);
+                console.error("Eroare la procesarea achiziției:", err);
+                alert("A apărut o eroare. Te rog încearcă din nou.");
             }
         }
     });
 }
+
 
 
 
